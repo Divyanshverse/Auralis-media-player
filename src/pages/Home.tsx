@@ -79,7 +79,7 @@ export default function Home() {
   }, [playTrack]);
 
   return (
-    <div className="p-4 md:p-6 pb-24 h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#121212]">
+    <div className="p-4 md:p-6 pb-6 h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#121212]">
       <div className="flex items-start justify-between mb-4 md:mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-white">Good evening</h1>
         <div className="md:hidden flex flex-col items-end text-[10px] text-gray-400 font-medium tracking-wide">

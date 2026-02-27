@@ -26,7 +26,7 @@ const LoadingFallback = () => (
 export default function App() {
   return (
     <Router>
-      <div className="flex flex-col h-[100dvh] bg-black overflow-hidden font-sans">
+      <div className="fixed inset-0 flex flex-col bg-black overflow-hidden font-sans">
         <div className="flex flex-1 overflow-hidden">
           <div className="hidden md:flex">
             <Sidebar />

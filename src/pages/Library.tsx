@@ -14,7 +14,7 @@ export default function Library() {
   };
 
   return (
-    <div className="p-4 md:p-6 pb-24 h-full overflow-y-auto bg-[#121212]">
+    <div className="p-4 md:p-6 pb-6 h-full overflow-y-auto bg-[#121212]">
       <div className="flex items-center justify-between mb-6 md:mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-white">Your Library</h1>
         <button

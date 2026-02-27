@@ -31,7 +31,7 @@ export default function Downloaded() {
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-b from-green-900 to-[#121212] pb-24">
+    <div className="h-full overflow-y-auto bg-gradient-to-b from-green-900 to-[#121212] pb-6">
       <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6 p-4 md:p-6 pt-12 md:pt-24 pb-6 md:pb-8 bg-gradient-to-b from-transparent to-black/40">
         <div className="w-32 h-32 md:w-48 md:h-48 bg-gradient-to-br from-green-600 to-emerald-300 shadow-2xl flex items-center justify-center shrink-0 self-center md:self-auto">
           <Download className="w-12 h-12 md:w-20 md:h-20 text-white" />
