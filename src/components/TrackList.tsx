@@ -46,10 +46,10 @@ const TrackItem = memo(({
 
   return (
     <div
-      className="group grid grid-cols-[16px_4fr_3fr_2fr_minmax(150px,1fr)] gap-4 px-4 py-2 text-sm text-gray-400 hover:bg-white/10 rounded-md transition-colors items-center cursor-pointer relative"
+      className="group flex md:grid md:grid-cols-[16px_4fr_3fr_2fr_minmax(150px,1fr)] gap-3 md:gap-4 px-3 md:px-4 py-2 text-sm text-gray-400 hover:bg-white/10 rounded-md transition-colors items-center cursor-pointer relative"
       onClick={() => onPlay(track)}
     >
-      <div className="w-4 flex justify-center">
+      <div className="w-4 hidden md:flex justify-center">
         {isCurrent && isPlaying ? (
           <Pause className="w-4 h-4 text-green-500" onClick={(e) => { e.stopPropagation(); onPause(); }} />
         ) : isCurrent ? (
@@ -62,8 +62,27 @@ const TrackItem = memo(({
         )}
       </div>
 
-      <div className="flex items-center gap-3 overflow-hidden">
-        <img src={track.artwork} alt={track.title} className="w-10 h-10 object-cover" loading="lazy" />
+      <div className="flex-1 md:flex-none flex items-center gap-3 overflow-hidden">
+        <div className="relative w-10 h-10 shrink-0">
+          <img src={track.artwork} alt={track.title} className="w-10 h-10 object-cover rounded-sm" loading="lazy" />
+          <div className="absolute inset-0 bg-black/40 hidden md:hidden group-hover:flex items-center justify-center rounded-sm">
+            {isCurrent && isPlaying ? (
+              <Pause className="w-4 h-4 text-white" onClick={(e) => { e.stopPropagation(); onPause(); }} />
+            ) : (
+              <Play className="w-4 h-4 text-white ml-0.5" />
+            )}
+          </div>
+          {/* Mobile play indicator */}
+          {isCurrent && (
+            <div className="absolute inset-0 bg-black/60 flex md:hidden items-center justify-center rounded-sm">
+              {isPlaying ? (
+                <Pause className="w-4 h-4 text-green-500" onClick={(e) => { e.stopPropagation(); onPause(); }} />
+              ) : (
+                <Play className="w-4 h-4 text-green-500 ml-0.5" />
+              )}
+            </div>
+          )}
+        </div>
         <div className="truncate">
           <div className={cn("truncate text-base", isCurrent ? "text-green-500" : "text-white")}>
             {track.title}
@@ -75,19 +94,19 @@ const TrackItem = memo(({
         </div>
       </div>
 
-      <div className="truncate group-hover:text-white transition-colors">
+      <div className="truncate group-hover:text-white transition-colors hidden md:block">
         {track.album}
       </div>
 
-      <div className="truncate">
+      <div className="truncate hidden md:block">
         {new Date().toLocaleDateString()}
       </div>
 
-      <div className="flex items-center justify-end gap-4 relative">
+      <div className="flex items-center justify-end gap-3 md:gap-4 relative shrink-0">
         <button
           onClick={(e) => onDownloadToggle(e, track)}
           className={cn(
-            "opacity-0 group-hover:opacity-100 transition-opacity", 
+            "opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity", 
             isDownloaded && "opacity-100 text-green-500",
             isDownloading && "opacity-100 animate-pulse text-gray-400"
           )}
@@ -97,17 +116,17 @@ const TrackItem = memo(({
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); onToggleLike(track); }}
-          className={cn("opacity-0 group-hover:opacity-100 transition-opacity", isLiked && "opacity-100 text-green-500")}
+          className={cn("opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity", isLiked && "opacity-100 text-green-500")}
         >
           <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
         </button>
-        <div className="w-10 text-right">{formatTime(track.duration)}</div>
+        <div className="w-10 text-right hidden md:block">{formatTime(track.duration)}</div>
         <button 
           onClick={(e) => {
             e.stopPropagation();
             onDropdownToggle(isDropdownOpen ? null : track.id);
           }}
-          className={cn("opacity-0 group-hover:opacity-100 transition-opacity text-white hover:scale-110", isDropdownOpen && "opacity-100")}
+          className={cn("opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity text-white hover:scale-110", isDropdownOpen && "opacity-100")}
         >
           <MoreHorizontal className="w-4 h-4" />
         </button>
@@ -220,9 +239,9 @@ export default function TrackList({ tracks, showHeader = true, playlistId }: Tra
   }, []);
 
   return (
-    <div className="w-full pb-32">
+    <div className="w-full pb-8 md:pb-32">
       {showHeader && (
-        <div className="grid grid-cols-[16px_4fr_3fr_2fr_minmax(150px,1fr)] gap-4 px-4 py-2 text-sm text-gray-400 border-b border-white/10 mb-4">
+        <div className="hidden md:grid grid-cols-[16px_4fr_3fr_2fr_minmax(150px,1fr)] gap-4 px-4 py-2 text-sm text-gray-400 border-b border-white/10 mb-4">
           <div>#</div>
           <div>Title</div>
           <div>Album</div>

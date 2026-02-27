@@ -7,6 +7,7 @@ import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Player from './components/Player';
+import BottomNav from './components/BottomNav';
 
 const Home = lazy(() => import('./pages/Home'));
 const Search = lazy(() => import('./pages/Search'));
@@ -25,10 +26,12 @@ const LoadingFallback = () => (
 export default function App() {
   return (
     <Router>
-      <div className="flex flex-col h-screen bg-black overflow-hidden font-sans">
+      <div className="flex flex-col h-[100dvh] bg-black overflow-hidden font-sans">
         <div className="flex flex-1 overflow-hidden">
-          <Sidebar />
-          <main className="flex-1 relative bg-[#121212] rounded-lg m-2 ml-0 overflow-hidden">
+          <div className="hidden md:flex">
+            <Sidebar />
+          </div>
+          <main className="flex-1 relative bg-[#121212] md:rounded-lg md:m-2 md:ml-0 overflow-hidden">
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
                 <Route path="/" element={<Navigate to="/home" replace />} />
@@ -44,6 +47,7 @@ export default function App() {
           </main>
         </div>
         <Player />
+        <BottomNav />
       </div>
     </Router>
   );

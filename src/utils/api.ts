@@ -49,7 +49,10 @@ export const searchTracks = async (
         };
       })
       .filter((track: Track) => track.url);
-  } catch (error) {
+  } catch (error: any) {
+    if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+      return [];
+    }
     console.error("Search error:", error);
     return [];
   }

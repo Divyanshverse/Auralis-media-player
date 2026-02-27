@@ -150,14 +150,14 @@ export default function Player() {
 
   if (!currentTrack) {
     return (
-      <div className="h-24 bg-[#181818] border-t border-[#282828] flex items-center justify-center text-gray-500 text-sm">
+      <div className="h-16 md:h-24 bg-[#181818] border-t border-[#282828] flex items-center justify-center text-gray-500 text-sm">
         Select a track to start listening
       </div>
     );
   }
 
   return (
-    <div className="h-24 bg-[#181818] border-t border-[#282828] flex items-center justify-between px-4 shrink-0">
+    <div className="h-16 md:h-24 bg-[#181818] border-t border-[#282828] flex items-center justify-between px-2 md:px-4 shrink-0">
       <audio
         ref={audioRef}
         preload="metadata"
@@ -167,14 +167,14 @@ export default function Player() {
       />
 
       {/* Track Info */}
-      <div className="flex items-center w-[30%] min-w-[180px]">
+      <div className="flex items-center w-[50%] md:w-[30%] min-w-[120px] md:min-w-[180px]">
         <img
           src={currentTrack.artwork}
           alt={currentTrack.title}
-          className="w-14 h-14 rounded-md object-cover mr-4"
+          className="w-10 h-10 md:w-14 md:h-14 rounded-md object-cover mr-2 md:mr-4"
           loading="lazy"
         />
-        <div className="flex flex-col justify-center truncate mr-4">
+        <div className="flex flex-col justify-center truncate mr-2 md:mr-4">
           <span className="text-white text-sm hover:underline cursor-pointer truncate">
             {currentTrack.title}
           </span>
@@ -185,7 +185,7 @@ export default function Player() {
         <button
           onClick={() => toggleLike(currentTrack)}
           className={cn(
-            "text-gray-400 hover:text-white transition-colors",
+            "text-gray-400 hover:text-white transition-colors hidden sm:block",
             isLiked && "text-green-500 hover:text-green-400",
           )}
         >
@@ -194,12 +194,12 @@ export default function Player() {
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col items-center max-w-[40%] w-full">
-        <div className="flex items-center gap-6 mb-2">
+      <div className="flex flex-col items-center flex-1 md:max-w-[40%] w-full">
+        <div className="flex items-center gap-4 md:gap-6 mb-0 md:mb-2">
           <button
             onClick={toggleShuffle}
             className={cn(
-              "text-gray-400 hover:text-white transition-colors",
+              "text-gray-400 hover:text-white transition-colors hidden md:block",
               isShuffle && "text-green-500 hover:text-green-400",
             )}
           >
@@ -207,13 +207,13 @@ export default function Player() {
           </button>
           <button
             onClick={previous}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-white transition-colors hidden sm:block"
           >
             <SkipBack className="w-5 h-5 fill-current" />
           </button>
           <button
             onClick={isPlaying ? pause : resume}
-            className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-black hover:scale-105 transition-transform"
+            className="w-8 h-8 md:w-8 md:h-8 flex items-center justify-center bg-white rounded-full text-black hover:scale-105 transition-transform"
           >
             {isPlaying ? (
               <Pause className="w-4 h-4 fill-current" />
@@ -230,7 +230,7 @@ export default function Player() {
           <button
             onClick={toggleRepeat}
             className={cn(
-              "text-gray-400 hover:text-white transition-colors relative",
+              "text-gray-400 hover:text-white transition-colors relative hidden md:block",
               repeatMode !== "off" && "text-green-500 hover:text-green-400",
             )}
           >
@@ -242,7 +242,7 @@ export default function Player() {
             )}
           </button>
         </div>
-        <div className="flex items-center w-full gap-2 text-xs text-gray-400">
+        <div className="hidden md:flex items-center w-full gap-2 text-xs text-gray-400">
           <span className="w-10 text-right">{formatTime(progress * 1000)}</span>
           <div className="flex-1 group flex items-center h-4">
             <input
@@ -268,7 +268,7 @@ export default function Player() {
       </div>
 
       {/* Volume & Extras */}
-      <div className="flex items-center justify-end w-[30%] min-w-[180px] gap-4">
+      <div className="hidden md:flex items-center justify-end w-[30%] min-w-[180px] gap-4">
         <button
           onClick={handleQueueClick}
           className={cn(

@@ -79,13 +79,20 @@ export default function Home() {
   }, [playTrack]);
 
   return (
-    <div className="p-6 pb-24 h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#121212]">
-      <h1 className="text-3xl font-bold text-white mb-6">Good evening</h1>
+    <div className="p-4 md:p-6 pb-24 h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#121212]">
+      <div className="flex items-start justify-between mb-4 md:mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-white">Good evening</h1>
+        <div className="md:hidden flex flex-col items-end text-[10px] text-gray-400 font-medium tracking-wide">
+          <span className="font-serif italic text-gray-300 text-xs">Divyanshverse</span>
+          <span className="text-gray-500 leading-none my-0.5">×</span>
+          <span className="text-[#f96d38] font-bold">AryansDevStudios</span>
+        </div>
+      </div>
 
       {history.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-4 hover:underline cursor-pointer">Recently played</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+        <section className="mb-6 md:mb-8">
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4 hover:underline cursor-pointer">Recently played</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
             {history.slice(0, 6).map(track => (
               <TrackCard
                 key={track.id}
@@ -102,19 +109,19 @@ export default function Home() {
       )}
 
       <section>
-        <h2 className="text-2xl font-bold text-white mb-4 hover:underline cursor-pointer">Recommended for you</h2>
+        <h2 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4 hover:underline cursor-pointer">Recommended for you</h2>
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
             {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="bg-[#181818] p-4 rounded-md animate-pulse">
-                <div className="w-full aspect-square bg-[#282828] rounded-md mb-4"></div>
+              <div key={i} className="bg-[#181818] p-3 md:p-4 rounded-md animate-pulse">
+                <div className="w-full aspect-square bg-[#282828] rounded-md mb-3 md:mb-4"></div>
                 <div className="h-4 bg-[#282828] rounded w-3/4 mb-2"></div>
                 <div className="h-3 bg-[#282828] rounded w-1/2"></div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
             {recommendations.map(track => (
               <TrackCard
                 key={track.id}

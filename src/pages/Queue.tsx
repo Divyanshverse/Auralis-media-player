@@ -53,14 +53,14 @@ function SortableTrackItem({ track, index, onRemove, ...props }: SortableTrackIt
         </div>
       </div>
 
-      <div className="w-10 text-right">{formatTime(track.duration)}</div>
+      <div className="w-10 text-right hidden md:block">{formatTime(track.duration)}</div>
       
       <button 
         onClick={(e) => {
           e.stopPropagation();
           onRemove(index);
         }}
-        className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 p-2"
+        className="opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 p-2"
       >
         <Trash2 className="w-4 h-4" />
       </button>
@@ -89,18 +89,18 @@ export default function Queue() {
   };
 
   return (
-    <div className="p-6 pb-24 h-full overflow-y-auto bg-[#121212]">
-      <h1 className="text-3xl font-bold text-white mb-8">Queue</h1>
+    <div className="p-4 md:p-6 pb-24 h-full overflow-y-auto bg-[#121212]">
+      <h1 className="text-2xl md:text-3xl font-bold text-white mb-6 md:mb-8">Queue</h1>
 
       {currentTrack && (
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-white mb-4">Now Playing</h2>
+        <div className="mb-6 md:mb-8">
+          <h2 className="text-lg md:text-xl font-bold text-white mb-3 md:mb-4">Now Playing</h2>
           <TrackList tracks={[currentTrack]} showHeader={false} />
         </div>
       )}
 
       <div>
-        <h2 className="text-xl font-bold text-white mb-4">Next Up</h2>
+        <h2 className="text-lg md:text-xl font-bold text-white mb-3 md:mb-4">Next Up</h2>
         {queue.length > 0 ? (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={queue.map(t => t.id)} strategy={verticalListSortingStrategy}>
