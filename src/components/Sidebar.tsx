@@ -109,7 +109,7 @@ export default function Sidebar() {
       <div className="mt-auto p-6 flex flex-col items-center justify-center gap-4 border-t border-gray-800/50 bg-black/20 rounded-xl mx-2 mb-2">
         <div className="text-sm text-gray-400 font-medium tracking-wide flex flex-col items-center justify-center gap-1 text-center">
           <span className="mb-1">© 2026</span>
-          <span className="font-serif italic text-gray-300 text-lg">
+          <span className="font-['Updock'] text-gray-300 text-3xl not-italic">
             Divyanshverse
           </span>
           <span className="text-gray-500 text-2xl leading-none my-1">×</span>

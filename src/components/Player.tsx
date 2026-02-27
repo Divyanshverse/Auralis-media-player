@@ -13,9 +13,10 @@ import {
   Heart,
   ChevronDown,
   MoreVertical,
+  FileDown,
 } from "lucide-react";
 import { usePlayerStore } from "../store/usePlayerStore";
-import { formatTime, cn } from "../utils/helpers";
+import { formatTime, cn, downloadToDevice } from "../utils/helpers";
 import { getOfflineTrackUrl } from "../utils/offline";
 
 export default function Player() {
@@ -367,8 +368,14 @@ export default function Player() {
                 {currentTrack.album || "Single"}
               </span>
             </div>
-            <button className="p-2">
-              <MoreVertical className="w-6 h-6 text-white" />
+            <button 
+              className="p-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                downloadToDevice(currentTrack);
+              }}
+            >
+              <FileDown className="w-6 h-6 text-white" />
             </button>
           </div>
 

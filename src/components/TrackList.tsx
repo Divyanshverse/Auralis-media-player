@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, memo, useCallback } from 'react';
-import { Play, Pause, Heart, MoreHorizontal, Plus, Trash2, Download, CheckCircle2 } from 'lucide-react';
+import { Play, Pause, Heart, MoreHorizontal, Plus, Trash2, Download, CheckCircle2, FileDown } from 'lucide-react';
 import { Track } from '../types';
 import { usePlayerStore } from '../store/usePlayerStore';
-import { formatTime, cn } from '../utils/helpers';
+import { formatTime, cn, downloadToDevice } from '../utils/helpers';
 import { saveTrackOffline, removeTrackOffline } from '../utils/offline';
 
 interface TrackItemProps {
@@ -24,12 +24,13 @@ interface TrackItemProps {
   onAddToQueue: (track: Track) => void;
   onAddToPlaylist: (playlistId: string, track: Track) => void;
   onRemoveFromPlaylist: (playlistId: string, trackId: string) => void;
+  onSaveToDevice: (track: Track) => void;
 }
 
 const TrackItem = memo(({
   track, index, isCurrent, isPlaying, isLiked, isDownloaded, isDownloading, isDropdownOpen,
   playlistId, playlists, onPlay, onPause, onToggleLike, onDownloadToggle, onDropdownToggle,
-  onAddToQueue, onAddToPlaylist, onRemoveFromPlaylist
+  onAddToQueue, onAddToPlaylist, onRemoveFromPlaylist, onSaveToDevice
 }: TrackItemProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -151,6 +152,17 @@ const TrackItem = memo(({
               <Plus className="w-4 h-4" />
               <span>Add to Queue</span>
             </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSaveToDevice(track);
+                onDropdownToggle(null);
+              }}
+              className="w-full text-left px-3 py-2 text-sm text-white hover:bg-white/10 flex items-center gap-2"
+            >
+              <FileDown className="w-4 h-4" />
+              <span>Save to Device</span>
+            </button>
             <div className="border-t border-white/10 my-1"></div>
             <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-white/10 mb-1">
               Add to Playlist
@@ -230,6 +242,10 @@ export default function TrackList({ tracks, showHeader = true, playlistId }: Tra
     }
   }, [downloadedTracks, removeDownloadedTrack, addDownloadedTrack]);
 
+  const handleSaveToDevice = useCallback(async (track: Track) => {
+    await downloadToDevice(track);
+  }, []);
+
   const handlePlay = useCallback((track: Track) => {
     playTrack(track, tracks);
   }, [playTrack, tracks]);
@@ -272,6 +288,7 @@ export default function TrackList({ tracks, showHeader = true, playlistId }: Tra
             onAddToQueue={addToQueue}
             onAddToPlaylist={addTrackToPlaylist}
             onRemoveFromPlaylist={removeTrackFromPlaylist}
+            onSaveToDevice={handleSaveToDevice}
           />
         ))}
       </div>

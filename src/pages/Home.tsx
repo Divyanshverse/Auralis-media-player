@@ -83,7 +83,7 @@ export default function Home() {
       <div className="flex items-start justify-between mb-4 md:mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-white">Good evening</h1>
         <div className="md:hidden flex flex-col items-end text-[10px] text-gray-400 font-medium tracking-wide">
-          <span className="font-serif italic text-gray-300 text-xs">Divyanshverse</span>
+          <span className="font-['Updock'] text-gray-300 text-xl not-italic">Divyanshverse</span>
           <span className="text-gray-500 leading-none my-0.5">×</span>
           <span className="text-[#f96d38] font-bold">AryansDevStudios</span>
         </div>
