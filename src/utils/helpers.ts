@@ -15,15 +15,15 @@ export function formatTime(ms: number) {
 
 export async function downloadToDevice(track: { title: string; url: string }) {
   try {
-    const response = await fetch(track.url);
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
+    // Use the proxy endpoint to handle CORS and filename
+    const downloadUrl = `/api/download?url=${encodeURIComponent(track.url)}&filename=${encodeURIComponent(track.title + '.m4a')}`;
+    
     const a = document.createElement('a');
-    a.href = url;
+    a.href = downloadUrl;
+    // The server sets Content-Disposition, so this is just a fallback/hint
     a.download = `${track.title}.m4a`;
     document.body.appendChild(a);
     a.click();
-    window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
     return true;
   } catch (error) {
