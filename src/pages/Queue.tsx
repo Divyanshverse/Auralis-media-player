@@ -17,7 +17,7 @@ interface SortableTrackItemProps extends React.HTMLAttributes<HTMLDivElement> {
 
 function SortableTrackItem({ track, index, onRemove, ...props }: SortableTrackItemProps) {
   const { playTrack, queue } = usePlayerStore();
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: track.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: `${track.id}-${index}` });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -46,8 +46,8 @@ function SortableTrackItem({ track, index, onRemove, ...props }: SortableTrackIt
       </div>
 
       <div className="flex-1 flex items-center gap-3 overflow-hidden">
-        <img src={track.artwork} alt={track.title} className="w-10 h-10 object-cover" loading="lazy" />
-        <div className="truncate">
+        <img src={track.artwork} alt={track.title} className="w-10 h-10 object-cover rounded-sm" loading="lazy" />
+        <div className="truncate flex-1">
           <div className="truncate text-base text-white">{track.title}</div>
           <div className="truncate text-sm group-hover:text-white transition-colors">{track.artist}</div>
         </div>
@@ -60,9 +60,9 @@ function SortableTrackItem({ track, index, onRemove, ...props }: SortableTrackIt
           e.stopPropagation();
           onRemove(index);
         }}
-        className="opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 p-2"
+        className="opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 p-3 -mr-2"
       >
-        <Trash2 className="w-4 h-4" />
+        <Trash2 className="w-5 h-5 md:w-4 md:h-4" />
       </button>
     </div>
   );
@@ -82,8 +82,8 @@ export default function Queue() {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = queue.findIndex((t) => t.id === active.id);
-      const newIndex = queue.findIndex((t) => t.id === over.id);
+      const oldIndex = queue.findIndex((t, i) => `${t.id}-${i}` === active.id);
+      const newIndex = queue.findIndex((t, i) => `${t.id}-${i}` === over.id);
       reorderQueue(oldIndex, newIndex);
     }
   };
@@ -103,7 +103,7 @@ export default function Queue() {
         <h2 className="text-lg md:text-xl font-bold text-white mb-3 md:mb-4">Next Up</h2>
         {queue.length > 0 ? (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={queue.map(t => t.id)} strategy={verticalListSortingStrategy}>
+            <SortableContext items={queue.map((t, i) => `${t.id}-${i}`)} strategy={verticalListSortingStrategy}>
               <div className="space-y-1">
                 {queue.map((track, index) => (
                   <SortableTrackItem 

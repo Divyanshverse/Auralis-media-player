@@ -2,6 +2,13 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Track, Playlist } from '../types';
 
+interface UserProfileData {
+  history: Track[];
+  likedTracks: Track[];
+  playlists: Playlist[];
+  downloadedTracks: string[];
+}
+
 interface PlayerState {
   currentTrack: Track | null;
   queue: Track[];
@@ -15,7 +22,13 @@ interface PlayerState {
   playlists: Playlist[];
   downloadedTracks: string[];
   
+  // Profiles
+  activeProfileId: string;
+  profiles: Record<string, UserProfileData>;
+  setActiveProfile: (id: string) => void;
+  
   // Actions
+  setCurrentTrack: (track: Track) => void;
   playTrack: (track: Track, queue?: Track[]) => void;
   pause: () => void;
   resume: () => void;
@@ -57,14 +70,64 @@ export const usePlayerStore = create<PlayerState>()(
       likedTracks: [],
       playlists: [],
       downloadedTracks: [],
+      
+      activeProfileId: 'guest',
+      profiles: {},
+
+      setActiveProfile: (newId) => set((state) => {
+        if (state.activeProfileId === newId) return state;
+
+        // Save current profile data before switching
+        const currentProfileData = {
+          history: state.history,
+          likedTracks: state.likedTracks,
+          playlists: state.playlists,
+          downloadedTracks: state.downloadedTracks,
+        };
+
+        const updatedProfiles = {
+          ...state.profiles,
+          [state.activeProfileId]: currentProfileData,
+        };
+
+        // Load new profile data
+        const newProfileData = updatedProfiles[newId] || {
+          history: [],
+          likedTracks: [],
+          playlists: [],
+          downloadedTracks: [],
+        };
+
+        return {
+          activeProfileId: newId,
+          profiles: updatedProfiles,
+          history: newProfileData.history,
+          likedTracks: newProfileData.likedTracks,
+          playlists: newProfileData.playlists,
+          downloadedTracks: newProfileData.downloadedTracks,
+        };
+      }),
+
+      setCurrentTrack: (track) => set({ currentTrack: track }),
 
       playTrack: (track, newQueue) => set((state) => {
         const history = state.currentTrack 
           ? [state.currentTrack, ...state.history.filter(t => t.id !== state.currentTrack?.id)].slice(0, 20)
           : state.history;
+          
+        let finalQueue = newQueue || state.queue;
+        if (newQueue) {
+          // Find the index of the track in the new queue
+          const trackIndex = newQueue.findIndex(t => t.id === track.id);
+          if (trackIndex !== -1) {
+            // Set queue to tracks AFTER the selected track
+            finalQueue = newQueue.slice(trackIndex + 1);
+          }
+        }
+
         return {
           currentTrack: track,
-          queue: newQueue || state.queue,
+          queue: finalQueue,
           isPlaying: true,
           history,
         };
@@ -199,16 +262,58 @@ export const usePlayerStore = create<PlayerState>()(
     }),
     {
       name: 'spotify-clone-storage-v2',
-      partialize: (state) => ({
-        history: state.history,
-        likedTracks: state.likedTracks,
-        playlists: state.playlists,
-        volume: state.volume,
-        isMuted: state.isMuted,
-        repeatMode: state.repeatMode,
-        isShuffle: state.isShuffle,
-        downloadedTracks: state.downloadedTracks,
-      }),
+      partialize: (state) => {
+        const currentProfileData = {
+          history: state.history,
+          likedTracks: state.likedTracks,
+          playlists: state.playlists,
+          downloadedTracks: state.downloadedTracks,
+        };
+        
+        return {
+          volume: state.volume,
+          isMuted: state.isMuted,
+          repeatMode: state.repeatMode,
+          isShuffle: state.isShuffle,
+          activeProfileId: state.activeProfileId,
+          profiles: {
+            ...state.profiles,
+            [state.activeProfileId]: currentProfileData,
+          },
+        };
+      },
+      merge: (persistedState: any, currentState) => {
+        const activeProfileId = persistedState?.activeProfileId || 'guest';
+        const profiles = persistedState?.profiles || {};
+        
+        // If migrating from old format where history/likedTracks were at root
+        if (!persistedState?.profiles && persistedState?.history) {
+          profiles['guest'] = {
+            history: persistedState.history || [],
+            likedTracks: persistedState.likedTracks || [],
+            playlists: persistedState.playlists || [],
+            downloadedTracks: persistedState.downloadedTracks || [],
+          };
+        }
+
+        const activeProfileData = profiles[activeProfileId] || {
+          history: [],
+          likedTracks: [],
+          playlists: [],
+          downloadedTracks: [],
+        };
+
+        return {
+          ...currentState,
+          ...persistedState,
+          activeProfileId,
+          profiles,
+          history: activeProfileData.history || [],
+          likedTracks: activeProfileData.likedTracks || [],
+          playlists: activeProfileData.playlists || [],
+          downloadedTracks: activeProfileData.downloadedTracks || [],
+        };
+      },
     }
   )
 );

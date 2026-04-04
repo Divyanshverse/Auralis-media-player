@@ -1,10 +1,17 @@
 import { NavLink } from "react-router-dom";
-import { Home, Search, Library, Heart, Music, Download } from "lucide-react";
+import { Home, Search, Library, Heart, Music, Download, User, PlusSquare } from "lucide-react";
 import { usePlayerStore } from "../store/usePlayerStore";
 import { cn } from "../utils/helpers";
 
 export default function Sidebar() {
-  const playlists = usePlayerStore((state) => state.playlists);
+  const { playlists, createPlaylist } = usePlayerStore();
+
+  const handleCreatePlaylist = () => {
+    const name = prompt("Enter playlist name:");
+    if (name && name.trim()) {
+      createPlaylist(name.trim());
+    }
+  };
 
   return (
     <div className="w-64 bg-black h-full flex flex-col text-gray-300 p-4 shrink-0">
@@ -52,11 +59,8 @@ export default function Sidebar() {
           <Library className="w-6 h-6" />
           Your Library
         </NavLink>
-      </nav>
-
-      <div className="space-y-4 mb-4">
         <NavLink
-          to="/liked"
+          to="/profile"
           className={({ isActive }) =>
             cn(
               "flex items-center gap-4 px-2 py-1 text-sm font-semibold transition-colors hover:text-white",
@@ -64,11 +68,21 @@ export default function Sidebar() {
             )
           }
         >
-          <div className="bg-gradient-to-br from-indigo-600 to-blue-300 p-1 rounded-sm text-white">
-            <Heart className="w-4 h-4 fill-current" />
-          </div>
-          Liked Songs
+          <User className="w-6 h-6" />
+          Profile
         </NavLink>
+      </nav>
+
+      <div className="space-y-4 mb-4">
+        <button
+          onClick={handleCreatePlaylist}
+          className="flex w-full items-center gap-4 px-2 py-1 text-sm font-semibold transition-colors text-gray-400 hover:text-white"
+        >
+          <div className="bg-gray-400 group-hover:bg-white p-1 rounded-sm text-black">
+            <PlusSquare className="w-4 h-4" />
+          </div>
+          Create Playlist
+        </button>
         <NavLink
           to="/downloaded"
           className={({ isActive }) =>

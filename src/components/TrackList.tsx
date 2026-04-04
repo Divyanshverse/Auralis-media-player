@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, memo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Play, Pause, Heart, MoreHorizontal, Plus, Trash2, Download, CheckCircle2, FileDown } from 'lucide-react';
 import { Track } from '../types';
 import { usePlayerStore } from '../store/usePlayerStore';
@@ -25,12 +26,14 @@ interface TrackItemProps {
   onAddToPlaylist: (playlistId: string, track: Track) => void;
   onRemoveFromPlaylist: (playlistId: string, trackId: string) => void;
   onSaveToDevice: (track: Track) => void;
+  onNavigateToSong: (track: Track) => void;
+  onNavigateToArtist: (artist: string) => void;
 }
 
 const TrackItem = memo(({
   track, index, isCurrent, isPlaying, isLiked, isDownloaded, isDownloading, isDropdownOpen,
   playlistId, playlists, onPlay, onPause, onToggleLike, onDownloadToggle, onDropdownToggle,
-  onAddToQueue, onAddToPlaylist, onRemoveFromPlaylist, onSaveToDevice
+  onAddToQueue, onAddToPlaylist, onRemoveFromPlaylist, onSaveToDevice, onNavigateToSong, onNavigateToArtist
 }: TrackItemProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -48,18 +51,18 @@ const TrackItem = memo(({
   return (
     <div
       className="group flex md:grid md:grid-cols-[16px_4fr_3fr_2fr_minmax(150px,1fr)] gap-3 md:gap-4 px-3 md:px-4 py-2 text-sm text-gray-400 hover:bg-white/10 rounded-md transition-colors items-center cursor-pointer relative"
-      onClick={() => onPlay(track)}
+      onClick={() => onNavigateToSong(track)}
     >
       <div className="w-4 hidden md:flex justify-center">
         {isCurrent && isPlaying ? (
-          <Pause className="w-4 h-4 text-green-500" onClick={(e) => { e.stopPropagation(); onPause(); }} />
+          <Pause className="w-4 h-4 text-green-500 hover:scale-110" onClick={(e) => { e.stopPropagation(); onPause(); }} />
         ) : isCurrent ? (
-          <Play className="w-4 h-4 text-green-500" />
+          <Play className="w-4 h-4 text-green-500 hover:scale-110" onClick={(e) => { e.stopPropagation(); onPlay(track); }} />
         ) : (
           <span className="group-hover:hidden">{index + 1}</span>
         )}
         {!isCurrent && (
-          <Play className="w-4 h-4 text-white hidden group-hover:block" />
+          <Play className="w-4 h-4 text-white hidden group-hover:block hover:scale-110" onClick={(e) => { e.stopPropagation(); onPlay(track); }} />
         )}
       </div>
 
@@ -68,27 +71,30 @@ const TrackItem = memo(({
           <img src={track.artwork} alt={track.title} className="w-10 h-10 object-cover rounded-sm" loading="lazy" />
           <div className="absolute inset-0 bg-black/40 hidden md:hidden group-hover:flex items-center justify-center rounded-sm">
             {isCurrent && isPlaying ? (
-              <Pause className="w-4 h-4 text-white" onClick={(e) => { e.stopPropagation(); onPause(); }} />
+              <Pause className="w-4 h-4 text-white hover:scale-110" onClick={(e) => { e.stopPropagation(); onPause(); }} />
             ) : (
-              <Play className="w-4 h-4 text-white ml-0.5" />
+              <Play className="w-4 h-4 text-white ml-0.5 hover:scale-110" onClick={(e) => { e.stopPropagation(); onPlay(track); }} />
             )}
           </div>
           {/* Mobile play indicator */}
           {isCurrent && (
             <div className="absolute inset-0 bg-black/60 flex md:hidden items-center justify-center rounded-sm">
               {isPlaying ? (
-                <Pause className="w-4 h-4 text-green-500" onClick={(e) => { e.stopPropagation(); onPause(); }} />
+                <Pause className="w-4 h-4 text-green-500 hover:scale-110" onClick={(e) => { e.stopPropagation(); onPause(); }} />
               ) : (
-                <Play className="w-4 h-4 text-green-500 ml-0.5" />
+                <Play className="w-4 h-4 text-green-500 ml-0.5 hover:scale-110" onClick={(e) => { e.stopPropagation(); onPlay(track); }} />
               )}
             </div>
           )}
         </div>
         <div className="truncate">
-          <div className={cn("truncate text-base", isCurrent ? "text-green-500" : "text-white")}>
+          <div className={cn("truncate text-base hover:underline", isCurrent ? "text-green-500" : "text-white")}>
             {track.title}
           </div>
-          <div className="flex items-center gap-2 truncate text-sm group-hover:text-white transition-colors">
+          <div 
+            className="flex items-center gap-2 truncate text-sm group-hover:text-white transition-colors hover:underline cursor-pointer"
+            onClick={(e) => { e.stopPropagation(); onNavigateToArtist(track.artist); }}
+          >
             {isDownloaded && <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />}
             <span className="truncate">{track.artist}</span>
           </div>
@@ -217,6 +223,7 @@ interface TrackListProps {
 }
 
 export default function TrackList({ tracks, showHeader = true, playlistId }: TrackListProps) {
+  const navigate = useNavigate();
   const { 
     currentTrack, isPlaying, playTrack, pause, toggleLike, likedTracks, 
     playlists, addTrackToPlaylist, removeTrackFromPlaylist, addToQueue,
@@ -254,8 +261,16 @@ export default function TrackList({ tracks, showHeader = true, playlistId }: Tra
     setActiveDropdown(trackId);
   }, []);
 
+  const handleNavigateToSong = useCallback((track: Track) => {
+    navigate(`/song/${track.id}`, { state: { track } });
+  }, [navigate]);
+
+  const handleNavigateToArtist = useCallback((artist: string) => {
+    navigate(`/artist/${encodeURIComponent(artist)}`);
+  }, [navigate]);
+
   return (
-    <div className="w-full pb-8 md:pb-32">
+    <div className="w-full pb-8">
       {showHeader && (
         <div className="hidden md:grid grid-cols-[16px_4fr_3fr_2fr_minmax(150px,1fr)] gap-4 px-4 py-2 text-sm text-gray-400 border-b border-white/10 mb-4">
           <div>#</div>
@@ -269,7 +284,7 @@ export default function TrackList({ tracks, showHeader = true, playlistId }: Tra
       <div className="space-y-1">
         {tracks.map((track, index) => (
           <TrackItem
-            key={track.id}
+            key={`${track.id}-${index}`}
             track={track}
             index={index}
             isCurrent={currentTrack?.id === track.id}
@@ -289,6 +304,8 @@ export default function TrackList({ tracks, showHeader = true, playlistId }: Tra
             onAddToPlaylist={addTrackToPlaylist}
             onRemoveFromPlaylist={removeTrackFromPlaylist}
             onSaveToDevice={handleSaveToDevice}
+            onNavigateToSong={handleNavigateToSong}
+            onNavigateToArtist={handleNavigateToArtist}
           />
         ))}
       </div>

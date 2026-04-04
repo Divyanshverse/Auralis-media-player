@@ -1,8 +1,9 @@
 import { useEffect, useState, memo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePlayerStore } from '../store/usePlayerStore';
 import { getRecommendations } from '../utils/api';
 import { Track } from '../types';
-import { Play, Pause, RotateCw } from 'lucide-react';
+import { Play, Pause, RotateCw, User } from 'lucide-react';
 import { cn } from '../utils/helpers';
 
 const TrackCard = memo(({ 
@@ -20,10 +21,11 @@ const TrackCard = memo(({
   onPlay: (track: Track, context: Track[]) => void; 
   onPause: () => void; 
 }) => {
+  const navigate = useNavigate();
   return (
     <div
       className="bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition-colors group cursor-pointer relative"
-      onClick={() => onPlay(track, context)}
+      onClick={() => navigate(`/song/${track.id}`, { state: { track } })}
     >
       <div className="relative mb-4">
         <img
@@ -53,13 +55,25 @@ const TrackCard = memo(({
           )}
         </button>
       </div>
-      <h3 className="text-white font-bold truncate mb-1">{track.title}</h3>
-      <p className="text-gray-400 text-sm truncate">{track.artist}</p>
+      <h3 className="text-white font-bold truncate mb-1 hover:underline" onClick={(e) => { e.stopPropagation(); navigate(`/song/${track.id}`, { state: { track } }); }}>{track.title}</h3>
+      <p className="text-gray-400 text-sm truncate hover:underline" onClick={(e) => { e.stopPropagation(); navigate(`/artist/${encodeURIComponent(track.artist)}`); }}>{track.artist}</p>
     </div>
   );
 });
 
+const POPULAR_ARTISTS = [
+  { name: 'AP Dhillon', image: 'https://c.saavncdn.com/artists/AP_Dhillon_004_20251023102150_500x500.jpg' },
+  { name: 'Arijit Singh', image: 'https://c.saavncdn.com/artists/Arijit_Singh_004_20241118063717_500x500.jpg' },
+  { name: 'Diljit Dosanjh', image: 'https://c.saavncdn.com/artists/Diljit_Dosanjh_005_20231025073054_500x500.jpg' },
+  { name: 'Shreya Ghoshal', image: 'https://c.saavncdn.com/artists/Shreya_Ghoshal_007_20241101074144_500x500.jpg' },
+  { name: 'The Weeknd', image: 'https://c.saavncdn.com/artists/The_Weeknd_002_20241003071400_500x500.jpg' },
+  { name: 'Taylor Swift', image: 'https://c.saavncdn.com/artists/Taylor_Swift_003_20200226074119_500x500.jpg' },
+  { name: 'Karan Aujla', image: 'https://c.saavncdn.com/artists/Karan_Aujla_003_20260218102828_500x500.jpg' },
+  { name: 'Sidhu Moose Wala', image: 'https://c.saavncdn.com/artists/Sidhu_Moose_Wala_004_20250617183705_500x500.jpg' }
+];
+
 export default function Home() {
+  const navigate = useNavigate();
   const { history, currentTrack, isPlaying, playTrack, pause } = usePlayerStore();
   const [recommendations, setRecommendations] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,6 +104,13 @@ export default function Home() {
           >
             <RotateCw className="w-4 h-4 md:w-5 md:h-5" />
           </button>
+          <button 
+            onClick={() => navigate('/profile')}
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
+            aria-label="Profile"
+          >
+            <User className="w-4 h-4 md:w-5 md:h-5" />
+          </button>
         </div>
         <div className="md:hidden flex flex-col items-end text-[10px] text-gray-400 font-medium tracking-wide">
           <span className="font-['Updock'] text-gray-300 text-xl not-italic">Divyanshverse</span>
@@ -102,9 +123,9 @@ export default function Home() {
         <section className="mb-6 md:mb-8">
           <h2 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4 hover:underline cursor-pointer">Recently played</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
-            {history.slice(0, 6).map(track => (
+            {history.slice(0, 6).map((track, index) => (
               <TrackCard
-                key={track.id}
+                key={`${track.id}-${index}`}
                 track={track}
                 context={history}
                 isCurrent={currentTrack?.id === track.id}
@@ -117,11 +138,38 @@ export default function Home() {
         </section>
       )}
 
+      <section className="mb-6 md:mb-8">
+        <h2 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4 hover:underline cursor-pointer">Popular Artists</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
+          {POPULAR_ARTISTS.map(artist => (
+            <div
+              key={artist.name}
+              onClick={() => navigate(`/artist/${encodeURIComponent(artist.name)}`)}
+              className="bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition-colors group cursor-pointer flex flex-col items-center text-center"
+            >
+              <div className="w-full aspect-square mb-4 rounded-full overflow-hidden shadow-lg">
+                <img
+                  src={artist.image}
+                  alt={artist.name}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://c.saavncdn.com/artists/default_500x500.jpg';
+                  }}
+                />
+              </div>
+              <h3 className="text-white font-bold truncate w-full">{artist.name}</h3>
+              <p className="text-gray-400 text-sm mt-1">Artist</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section>
         <h2 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4 hover:underline cursor-pointer">Recommended for you</h2>
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
-            {Array.from({ length: 12 }).map((_, i) => (
+            {Array.from({ length: 24 }).map((_, i) => (
               <div key={i} className="bg-[#181818] p-3 md:p-4 rounded-md animate-pulse">
                 <div className="w-full aspect-square bg-[#282828] rounded-md mb-3 md:mb-4"></div>
                 <div className="h-4 bg-[#282828] rounded w-3/4 mb-2"></div>
@@ -131,9 +179,9 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
-            {recommendations.map(track => (
+            {recommendations.map((track, index) => (
               <TrackCard
-                key={track.id}
+                key={`${track.id}-${index}`}
                 track={track}
                 context={recommendations}
                 isCurrent={currentTrack?.id === track.id}

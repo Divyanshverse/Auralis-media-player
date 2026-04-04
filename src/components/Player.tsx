@@ -14,10 +14,13 @@ import {
   ChevronDown,
   MoreVertical,
   FileDown,
+  Mic2,
 } from "lucide-react";
 import { usePlayerStore } from "../store/usePlayerStore";
 import { formatTime, cn, downloadToDevice } from "../utils/helpers";
 import { getOfflineTrackUrl } from "../utils/offline";
+import { getLyrics } from "../utils/api";
+import Hls from "hls.js";
 
 export default function Player() {
   const navigate = useNavigate();
@@ -43,10 +46,17 @@ export default function Player() {
   } = usePlayerStore();
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const loadedTrackIdRef = useRef<string | null>(null);
+  const isTrackLoadedRef = useRef<boolean>(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showLyrics, setShowLyrics] = useState(false);
+  const [lyrics, setLyrics] = useState<string | null>(null);
+  const [loadingLyrics, setLoadingLyrics] = useState(false);
   const lastUpdateRef = useRef<number>(0);
+
+  const hlsRef = useRef<Hls | null>(null);
 
   const isLiked = currentTrack
     ? likedTracks.some((t) => t.id === currentTrack.id)
@@ -61,47 +71,166 @@ export default function Player() {
 
   useEffect(() => {
     if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.play().catch(console.error);
-      } else {
+      if (isPlaying && isTrackLoadedRef.current) {
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            if (error.name !== 'AbortError') {
+              console.error('Playback error:', error);
+            }
+          });
+        }
+      } else if (!isPlaying) {
         audioRef.current.pause();
       }
     }
-  }, [isPlaying, currentTrack]);
+  }, [isPlaying]);
 
   useEffect(() => {
     let currentOfflineUrl: string | null = null;
 
     const loadTrack = async () => {
+      console.log("loadTrack started for:", currentTrack?.title, currentTrack?.id);
+      isTrackLoadedRef.current = false;
       if (!currentTrack && audioRef.current) {
         audioRef.current.src = "";
+        loadedTrackIdRef.current = null;
         return;
       }
+      
       if (currentTrack && audioRef.current) {
+        loadedTrackIdRef.current = currentTrack.id;
         const offlineUrl = await getOfflineTrackUrl(currentTrack.id);
         currentOfflineUrl = offlineUrl;
-        audioRef.current.src = offlineUrl || currentTrack.url;
-        audioRef.current.play().catch(console.error);
+        
+        const isYouTube = currentTrack.url.includes('youtube.com') || currentTrack.url.includes('youtu.be') || currentTrack.url.includes('/api/stream');
+        console.log("isYouTube:", isYouTube, "url:", currentTrack.url);
+        
+        let urlToPlay = offlineUrl || currentTrack.url;
+        
+        if (!offlineUrl && isYouTube) {
+          try {
+            console.log("Resolving track...");
+            // Extract id, title, artist from currentTrack.url if it's an /api/stream URL
+            let resolveUrl = `/api/resolve-track?url=${encodeURIComponent(currentTrack.url)}&title=${encodeURIComponent(currentTrack.title)}&artist=${encodeURIComponent(currentTrack.artist)}`;
+            
+            if (currentTrack.url.includes('/api/stream')) {
+              const urlObj = new URL(currentTrack.url, window.location.origin);
+              const id = urlObj.searchParams.get('id');
+              if (id) {
+                resolveUrl = `/api/resolve-track?id=${id}&title=${encodeURIComponent(currentTrack.title)}&artist=${encodeURIComponent(currentTrack.artist)}`;
+              }
+            }
+            
+            const res = await fetch(resolveUrl);
+            if (res.ok) {
+              const resolved = await res.json();
+              urlToPlay = resolved.url;
+              console.log("Resolved URL:", urlToPlay.substring(0, 50) + "...");
+              
+              // Check if the track hasn't changed while we were fetching
+              const latestTrack = usePlayerStore.getState().currentTrack;
+              if (latestTrack && latestTrack.id === currentTrack.id) {
+                // Update the current track in the store with the resolved metadata
+                // This ensures the UI matches the actual audio being played
+                if (resolved.title || resolved.artist) {
+                  usePlayerStore.getState().setCurrentTrack({
+                    ...latestTrack,
+                    title: resolved.title || latestTrack.title,
+                    artist: resolved.artist || latestTrack.artist,
+                    artwork: resolved.artwork || latestTrack.artwork,
+                    url: resolved.url // Update URL to prevent infinite resolution loops
+                  });
+                }
+              } else {
+                console.log("Track changed during fetch, aborting old track");
+                // Track changed during fetch, abort playback of this old track
+                return;
+              }
+            } else {
+              urlToPlay = ''; // Force error if resolution fails
+              console.log("Resolution failed with status:", res.status);
+            }
+          } catch (err) {
+            console.error("Failed to resolve track:", err);
+            urlToPlay = '';
+          }
+        }
+
+        if (!urlToPlay) {
+          console.warn("No preview URL available for this track.");
+          pause();
+          return;
+        }
+
+        console.log("Setting src and playing...");
+        if (hlsRef.current) {
+          hlsRef.current.destroy();
+          hlsRef.current = null;
+        }
+
+        if (urlToPlay.includes(".m3u8") && Hls.isSupported()) {
+          console.log("Using HLS");
+          const hls = new Hls();
+          hlsRef.current = hls;
+          hls.loadSource(urlToPlay);
+          hls.attachMedia(audioRef.current);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            isTrackLoadedRef.current = true;
+            if (usePlayerStore.getState().isPlaying) {
+              const playPromise = audioRef.current?.play();
+              if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                  if (error.name !== 'AbortError') {
+                    console.error('Playback error:', error);
+                  }
+                });
+              }
+            }
+          });
+          hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+              switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                  console.error("fatal network error encountered, try to recover");
+                  hls.startLoad();
+                  break;
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                  console.error("fatal media error encountered, try to recover");
+                  hls.recoverMediaError();
+                  break;
+                default:
+                  console.error("fatal error, cannot recover", data);
+                  hls.destroy();
+                  break;
+              }
+            } else {
+              console.warn("HLS error:", data);
+            }
+          });
+        } else {
+          console.log("Using native audio");
+          audioRef.current.src = urlToPlay;
+          isTrackLoadedRef.current = true;
+          if (usePlayerStore.getState().isPlaying) {
+            const playPromise = audioRef.current.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(error => {
+                if (error.name !== 'AbortError') {
+                  console.error('Playback error:', error);
+                }
+              });
+            }
+          }
+        }
+        
         setProgress(0);
         lastUpdateRef.current = 0;
 
         if ("mediaSession" in navigator) {
-          navigator.mediaSession.metadata = new MediaMetadata({
-            title: currentTrack.title,
-            artist: currentTrack.artist,
-            album: currentTrack.album,
-            artwork: [
-              {
-                src: currentTrack.artwork,
-                sizes: "300x300",
-                type: "image/jpeg",
-              },
-            ],
-          });
-
           navigator.mediaSession.setActionHandler("play", resume);
           navigator.mediaSession.setActionHandler("pause", pause);
-          navigator.mediaSession.setActionHandler("previoustrack", previous);
+          navigator.mediaSession.setActionHandler("previoustrack", handlePrevious);
           navigator.mediaSession.setActionHandler("nexttrack", next);
         }
       }
@@ -109,11 +238,37 @@ export default function Player() {
     loadTrack();
 
     return () => {
+      console.log("Cleanup for:", currentTrack?.title);
       if (currentOfflineUrl) {
         URL.revokeObjectURL(currentOfflineUrl);
       }
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
     };
+  }, [currentTrack?.id]);
+
+  useEffect(() => {
+    if (currentTrack && "mediaSession" in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentTrack.title,
+        artist: currentTrack.artist,
+        album: currentTrack.album,
+        artwork: [{ src: currentTrack.artwork, sizes: "300x300", type: "image/jpeg" }],
+      });
+    }
   }, [currentTrack]);
+
+  useEffect(() => {
+    if (showLyrics && currentTrack) {
+      setLoadingLyrics(true);
+      getLyrics(currentTrack.id, currentTrack.artist, currentTrack.title).then((res) => {
+        setLyrics(res);
+        setLoadingLyrics(false);
+      });
+    }
+  }, [currentTrack, showLyrics]);
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
@@ -144,6 +299,21 @@ export default function Player() {
     }
   };
 
+  const handlePrevious = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (audioRef.current && audioRef.current.currentTime > 3) {
+      audioRef.current.currentTime = 0;
+    } else {
+      previous();
+    }
+  };
+
+  const handleError = () => {
+    console.error("Failed to load audio source.");
+    setError("Failed to load audio stream.");
+    pause();
+  };
+
   const handleQueueClick = () => {
     if (isQueueActive) {
       navigate(-1);
@@ -168,6 +338,7 @@ export default function Player() {
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleEnded}
         onLoadedMetadata={handleTimeUpdate}
+        onError={handleError}
       />
 
       {/* Mini Player (Mobile) & Standard Player (Desktop) */}
@@ -193,10 +364,24 @@ export default function Player() {
             loading="lazy"
           />
           <div className="flex flex-col justify-center truncate mr-2 md:mr-4">
-            <span className="text-white text-sm font-medium hover:underline cursor-pointer truncate">
+            <span 
+              className="text-white text-sm font-medium hover:underline cursor-pointer truncate"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(false);
+                navigate(`/song/${currentTrack.id}`, { state: { track: currentTrack } });
+              }}
+            >
               {currentTrack.title}
             </span>
-            <span className="text-xs text-gray-400 hover:underline cursor-pointer truncate">
+            <span 
+              className="text-xs text-gray-400 hover:underline cursor-pointer truncate"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(false);
+                navigate(`/artist/${encodeURIComponent(currentTrack.artist)}`);
+              }}
+            >
               {currentTrack.artist}
             </span>
           </div>
@@ -241,7 +426,7 @@ export default function Player() {
               <Shuffle className="w-4 h-4" />
             </button>
             <button
-              onClick={previous}
+              onClick={handlePrevious}
               className="text-gray-400 hover:text-white transition-colors"
             >
               <SkipBack className="w-5 h-5 fill-current" />
@@ -305,6 +490,15 @@ export default function Player() {
         {/* Volume & Extras */}
         <div className="hidden md:flex items-center justify-end w-[30%] min-w-[180px] gap-4">
           <button
+            onClick={(e) => { e.stopPropagation(); setShowLyrics(!showLyrics); }}
+            className={cn(
+              "text-gray-400 hover:text-white transition-colors relative",
+              showLyrics && "text-green-500 hover:text-green-400",
+            )}
+          >
+            <Mic2 className="w-5 h-5" />
+          </button>
+          <button
             onClick={(e) => { e.stopPropagation(); handleQueueClick(); }}
             className={cn(
               "text-gray-400 hover:text-white transition-colors relative",
@@ -357,7 +551,7 @@ export default function Player() {
         <div className="fixed inset-0 z-50 bg-gradient-to-b from-gray-800 to-[#121212] flex flex-col md:hidden animate-in slide-in-from-bottom-full duration-300">
           {/* Header */}
           <div className="flex items-center justify-between p-4 pt-6">
-            <button onClick={() => setIsExpanded(false)} className="p-2">
+            <button onClick={() => { setIsExpanded(false); setShowLyrics(false); }} className="p-2">
               <ChevronDown className="w-6 h-6 text-white" />
             </button>
             <div className="text-center flex flex-col items-center">
@@ -392,8 +586,26 @@ export default function Player() {
           <div className="p-6 pb-12 flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <div className="flex flex-col overflow-hidden pr-4">
-                <h2 className="text-2xl font-bold text-white truncate">{currentTrack.title}</h2>
-                <p className="text-gray-400 text-lg truncate">{currentTrack.artist}</p>
+                <h2 
+                  className="text-2xl font-bold text-white truncate hover:underline cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExpanded(false);
+                    navigate(`/song/${currentTrack.id}`, { state: { track: currentTrack } });
+                  }}
+                >
+                  {currentTrack.title}
+                </h2>
+                <p 
+                  className="text-gray-400 text-lg truncate hover:underline cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExpanded(false);
+                    navigate(`/artist/${encodeURIComponent(currentTrack.artist)}`);
+                  }}
+                >
+                  {currentTrack.artist}
+                </p>
               </div>
               <button onClick={() => toggleLike(currentTrack)} className="shrink-0">
                 <Heart className={cn("w-7 h-7", isLiked ? "text-green-500 fill-current" : "text-white")} />
@@ -426,7 +638,7 @@ export default function Player() {
               <button onClick={toggleShuffle} className={cn("text-white", isShuffle && "text-green-500")}>
                 <Shuffle className="w-6 h-6" />
               </button>
-              <button onClick={previous} className="text-white">
+              <button onClick={handlePrevious} className="text-white">
                 <SkipBack className="w-10 h-10 fill-current" />
               </button>
               <button 
@@ -450,11 +662,43 @@ export default function Player() {
             
             {/* Bottom Actions */}
             <div className="flex items-center justify-between mt-4">
+              <button 
+                className={cn("text-white transition-colors", showLyrics && "text-green-500")}
+                onClick={() => setShowLyrics(!showLyrics)}
+              >
+                <Mic2 className="w-5 h-5" />
+              </button>
               <button className="text-white">
                 <ListMusic className="w-5 h-5" onClick={() => { setIsExpanded(false); navigate('/queue'); }} />
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Lyrics Overlay */}
+      {showLyrics && currentTrack && (
+        <div className="fixed inset-0 z-[60] bg-[#121212]/95 backdrop-blur-md flex flex-col pt-12 pb-24 px-6 md:px-20 overflow-y-auto animate-in fade-in duration-200">
+          <button 
+            onClick={() => setShowLyrics(false)} 
+            className="absolute top-6 right-6 text-white p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+          >
+            <ChevronDown className="w-6 h-6" />
+          </button>
+          <h2 className="text-2xl md:text-4xl font-bold text-white mb-8 text-center">{currentTrack.title} - Lyrics</h2>
+          {loadingLyrics ? (
+            <div className="flex justify-center mt-20">
+              <div className="animate-spin w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full"></div>
+            </div>
+          ) : lyrics ? (
+            <div className="text-white/80 text-lg md:text-2xl leading-relaxed text-center whitespace-pre-wrap max-w-3xl mx-auto font-medium pb-20">
+              {lyrics}
+            </div>
+          ) : (
+            <div className="text-white/50 text-center text-xl mt-20">
+              Lyrics not available for this track.
+            </div>
+          )}
         </div>
       )}
     </>
