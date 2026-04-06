@@ -2,19 +2,16 @@ import { NavLink } from "react-router-dom";
 import { Home, Search, Library, Heart, Music, Download, User, PlusSquare } from "lucide-react";
 import { usePlayerStore } from "../store/usePlayerStore";
 import { cn } from "../utils/helpers";
+import { useState } from "react";
+import CreatePlaylistModal from "./CreatePlaylistModal";
 
 export default function Sidebar() {
-  const { playlists, createPlaylist } = usePlayerStore();
-
-  const handleCreatePlaylist = () => {
-    const name = prompt("Enter playlist name:");
-    if (name && name.trim()) {
-      createPlaylist(name.trim());
-    }
-  };
+  const { playlists } = usePlayerStore();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="w-64 bg-black h-full flex flex-col text-gray-300 p-4 shrink-0">
+      <CreatePlaylistModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <div className="flex items-center gap-2 px-2 mb-8">
         <Music className="w-8 h-8 text-white" />
         <span className="text-white text-xl font-bold tracking-tight">
@@ -75,7 +72,7 @@ export default function Sidebar() {
 
       <div className="space-y-4 mb-4">
         <button
-          onClick={handleCreatePlaylist}
+          onClick={() => setIsModalOpen(true)}
           className="flex w-full items-center gap-4 px-2 py-1 text-sm font-semibold transition-colors text-gray-400 hover:text-white"
         >
           <div className="bg-gray-400 group-hover:bg-white p-1 rounded-sm text-black">
@@ -121,14 +118,10 @@ export default function Sidebar() {
       </div>
 
       <div className="mt-auto p-6 flex flex-col items-center justify-center gap-4 border-t border-gray-800/50 bg-black/20 rounded-xl mx-2 mb-2">
-        <div className="text-sm text-gray-400 font-medium tracking-wide flex flex-col items-center justify-center gap-1 text-center">
+        <div className="text-sm text-gray-400 font-medium tracking-wide flex flex-col items-center justify-center gap-2 text-center">
           <span className="mb-1">© 2026</span>
-          <span className="font-['Updock'] text-gray-300 text-3xl not-italic">
+          <span className="font-['Updock'] text-gray-300 text-5xl not-italic tracking-wider py-2">
             Divyanshverse
-          </span>
-          <span className="text-gray-500 text-2xl leading-none my-1">×</span>
-          <span className="text-[#f96d38] font-bold text-base">
-            AryansDevStudios
           </span>
         </div>
         <div className="text-xs font-bold text-gray-500 tracking-widest uppercase text-center mt-2">

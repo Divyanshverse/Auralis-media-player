@@ -6,6 +6,7 @@ import YTMusic from 'ytmusic-api';
 import youtubedl from 'youtube-dl-exec';
 import fetch from 'node-fetch';
 import play from 'play-dl';
+import { LRUCache } from 'lru-cache';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import fs from 'fs';
@@ -21,6 +22,12 @@ const saavn: any = (SaavnAPI as any).default || SaavnAPI;
 // Initialize YTMusic
 const ytmusic = new YTMusic();
 ytmusic.initialize().then(() => console.log('YTMusic initialized')).catch(console.error);
+
+// Initialize stream cache
+const streamCache = new LRUCache<string, any>({
+  max: 500, // Store up to 500 resolved streams
+  ttl: 1000 * 60 * 15, // 15 minutes TTL
+});
 
 const app = express();
 const PORT = 3000;
@@ -39,6 +46,12 @@ app.get('/api/resolve-track', async (req, res) => {
   const artist = req.query.artist as string;
   const url = req.query.url as string;
   const id = req.query.id as string;
+  const nocache = req.query.nocache === 'true';
+  
+  const cacheKey = id || url || `${title}-${artist}`;
+  if (!nocache && streamCache.has(cacheKey)) {
+    return res.json(streamCache.get(cacheKey));
+  }
   
   try {
     let ytUrl = url;
@@ -67,12 +80,14 @@ app.get('/api/resolve-track', async (req, res) => {
           .sort((a, b) => (b.abr || 0) - (a.abr || 0))[0];
           
         if (format && format.url) {
-          return res.json({
+          const result = {
             url: format.url,
             title: title || output.title,
             artist: artist || output.uploader,
             artwork: output.thumbnail
-          });
+          };
+          streamCache.set(cacheKey, result);
+          return res.json(result);
         }
       } catch (ytError: any) {
         const errMsg = String(ytError.message || ytError);
@@ -111,14 +126,16 @@ app.get('/api/resolve-track', async (req, res) => {
       }
       
       if (song) {
-        const downloadUrl = song.downloadUrl?.[song.downloadUrl.length - 1]?.url || song.downloadUrl?.[0]?.url;
+        const downloadUrl = song.downloadUrl?.sort((a: any, b: any) => parseInt(b.quality) - parseInt(a.quality))?.[0]?.url;
         if (downloadUrl) {
-          return res.json({
+          const result = {
             url: downloadUrl,
             title: song.name,
             artist: song.artists?.primary?.map((a: any) => a.name).join(', ') || song.artist || 'Unknown Artist',
             artwork: song.image?.[song.image.length - 1]?.url || song.image?.[0]?.url || ''
-          });
+          };
+          streamCache.set(cacheKey, result);
+          return res.json(result);
         }
       }
     } catch (saavnError: any) {
@@ -139,12 +156,14 @@ app.get('/api/resolve-track', async (req, res) => {
       if (track) {
         const stream = await play.stream(track.url);
         if (stream && stream.url) {
-          return res.json({
+          const result = {
             url: stream.url,
             title: track.name,
             artist: track.user?.name || 'Unknown Artist',
             artwork: track.thumbnail || ''
-          });
+          };
+          streamCache.set(cacheKey, result);
+          return res.json(result);
         }
       }
     } catch (scError: any) {
@@ -159,12 +178,14 @@ app.get('/api/resolve-track', async (req, res) => {
         const data = await response.json();
         const track = data.data?.find((t: any) => isRelevant(t, title, artist));
         if (track) {
-          return res.json({
+          const result = {
             url: `https://discoveryprovider.audius.co/v1/tracks/${track.id}/stream?app_name=${appName}`,
             title: track.title,
             artist: track.user?.name || 'Unknown Artist',
             artwork: track.artwork?.['480x480'] || track.artwork?.['150x150'] || ''
-          });
+          };
+          streamCache.set(cacheKey, result);
+          return res.json(result);
         }
       }
     } catch (audiusError: any) {

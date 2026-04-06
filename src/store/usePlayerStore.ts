@@ -51,6 +51,9 @@ interface PlayerState {
   removeTrackFromPlaylist: (playlistId: string, trackId: string) => void;
   reorderPlaylist: (playlistId: string, startIndex: number, endIndex: number) => void;
 
+  // History
+  clearHistory: () => void;
+
   // Offline
   addDownloadedTrack: (id: string) => void;
   removeDownloadedTrack: (id: string) => void;
@@ -251,6 +254,8 @@ export const usePlayerStore = create<PlayerState>()(
           return p;
         })
       })),
+
+      clearHistory: () => set({ history: [] }),
 
       addDownloadedTrack: (id) => set((state) => ({
         downloadedTracks: [...new Set([...state.downloadedTracks, id])]

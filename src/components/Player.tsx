@@ -15,6 +15,7 @@ import {
   MoreVertical,
   FileDown,
   Mic2,
+  Plus,
 } from "lucide-react";
 import { usePlayerStore } from "../store/usePlayerStore";
 import { formatTime, cn, downloadToDevice } from "../utils/helpers";
@@ -38,11 +39,14 @@ export default function Player() {
     resume,
     next,
     previous,
+    queue: playerQueue,
     setVolume,
     toggleMute,
     toggleRepeat,
     toggleShuffle,
     toggleLike,
+    playlists,
+    addTrackToPlaylist,
   } = usePlayerStore();
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -52,16 +56,46 @@ export default function Player() {
   const [duration, setDuration] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showLyrics, setShowLyrics] = useState(false);
+  const [isPlaylistDropdownOpen, setIsPlaylistDropdownOpen] = useState(false);
+  const playlistDropdownRef = useRef<HTMLDivElement>(null);
   const [lyrics, setLyrics] = useState<string | null>(null);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const lastUpdateRef = useRef<number>(0);
 
   const hlsRef = useRef<Hls | null>(null);
+  const nextTrackPreloadRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    setRetryCount(0);
+  }, [currentTrack?.id]);
+
+  useEffect(() => {
+    if (playerQueue.length > 0) {
+      const nextTrack = playerQueue[0];
+      if (nextTrack.id !== nextTrackPreloadRef.current) {
+        nextTrackPreloadRef.current = nextTrack.id;
+        getOfflineTrackUrl(nextTrack.id);
+      }
+    }
+  }, [currentTrack, playerQueue]);
 
   const isLiked = currentTrack
     ? likedTracks.some((t) => t.id === currentTrack.id)
     : false;
   const isQueueActive = location.pathname === "/queue";
+
+  useEffect(() => {
+    if (!isPlaylistDropdownOpen) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (playlistDropdownRef.current && !playlistDropdownRef.current.contains(event.target as Node)) {
+        setIsPlaylistDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isPlaylistDropdownOpen]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -121,6 +155,10 @@ export default function Player() {
                 resolveUrl = `/api/resolve-track?id=${id}&title=${encodeURIComponent(currentTrack.title)}&artist=${encodeURIComponent(currentTrack.artist)}`;
               }
             }
+
+            if (retryCount > 0) {
+              resolveUrl += '&nocache=true';
+            }
             
             const res = await fetch(resolveUrl);
             if (res.ok) {
@@ -138,8 +176,7 @@ export default function Player() {
                     ...latestTrack,
                     title: resolved.title || latestTrack.title,
                     artist: resolved.artist || latestTrack.artist,
-                    artwork: resolved.artwork || latestTrack.artwork,
-                    url: resolved.url // Update URL to prevent infinite resolution loops
+                    artwork: resolved.artwork || latestTrack.artwork
                   });
                 }
               } else {
@@ -192,8 +229,13 @@ export default function Player() {
             if (data.fatal) {
               switch (data.type) {
                 case Hls.ErrorTypes.NETWORK_ERROR:
-                  console.error("fatal network error encountered, try to recover");
-                  hls.startLoad();
+                  if (retryCount < 3) {
+                    console.error("fatal network error encountered, try to recover", data);
+                    setRetryCount(prev => prev + 1);
+                  } else {
+                    console.error("fatal network error, cannot recover", data);
+                    hls.destroy();
+                  }
                   break;
                 case Hls.ErrorTypes.MEDIA_ERROR:
                   console.error("fatal media error encountered, try to recover");
@@ -247,7 +289,7 @@ export default function Player() {
         hlsRef.current = null;
       }
     };
-  }, [currentTrack?.id]);
+  }, [currentTrack?.id, retryCount]);
 
   useEffect(() => {
     if (currentTrack && "mediaSession" in navigator) {
@@ -299,8 +341,10 @@ export default function Player() {
     }
   };
 
-  const handlePrevious = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
+  const handlePrevious = (details?: React.MouseEvent | MediaSessionActionDetails) => {
+    if ('stopPropagation' in (details || {})) {
+      (details as React.MouseEvent).stopPropagation();
+    }
     if (audioRef.current && audioRef.current.currentTime > 3) {
       audioRef.current.currentTime = 0;
     } else {
@@ -394,6 +438,51 @@ export default function Player() {
           >
             <Heart className={cn("w-5 h-5", isLiked && "fill-current")} />
           </button>
+          <div className="relative hidden sm:block ml-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsPlaylistDropdownOpen(!isPlaylistDropdownOpen);
+              }}
+              className={cn(
+                "text-gray-400 hover:text-white transition-colors",
+                isPlaylistDropdownOpen && "text-white"
+              )}
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+            {isPlaylistDropdownOpen && (
+              <div 
+                ref={playlistDropdownRef}
+                className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-[#282828] rounded-md shadow-2xl z-50 py-1 border border-white/10"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-white/10 mb-1">
+                  Add to Playlist
+                </div>
+                <div className="max-h-48 overflow-y-auto">
+                  {playlists.length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-gray-400">No playlists found</div>
+                  ) : (
+                    playlists.map(playlist => (
+                      <button
+                        key={playlist.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addTrackToPlaylist(playlist.id, currentTrack);
+                          setIsPlaylistDropdownOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-white hover:bg-white/10 flex items-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span className="truncate">{playlist.name}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Controls */}
@@ -607,9 +696,47 @@ export default function Player() {
                   {currentTrack.artist}
                 </p>
               </div>
-              <button onClick={() => toggleLike(currentTrack)} className="shrink-0">
-                <Heart className={cn("w-7 h-7", isLiked ? "text-green-500 fill-current" : "text-white")} />
-              </button>
+              <div className="flex items-center gap-4 shrink-0">
+                <div className="relative">
+                  <button onClick={() => setIsPlaylistDropdownOpen(!isPlaylistDropdownOpen)}>
+                    <Plus className={cn("w-7 h-7", isPlaylistDropdownOpen ? "text-green-500" : "text-white")} />
+                  </button>
+                  {isPlaylistDropdownOpen && (
+                    <div 
+                      ref={playlistDropdownRef}
+                      className="absolute bottom-full mb-4 right-0 w-48 bg-[#282828] rounded-md shadow-2xl z-50 py-1 border border-white/10"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-white/10 mb-1">
+                        Add to Playlist
+                      </div>
+                      <div className="max-h-48 overflow-y-auto">
+                        {playlists.length === 0 ? (
+                          <div className="px-3 py-2 text-sm text-gray-400">No playlists found</div>
+                        ) : (
+                          playlists.map(playlist => (
+                            <button
+                              key={playlist.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                addTrackToPlaylist(playlist.id, currentTrack);
+                                setIsPlaylistDropdownOpen(false);
+                              }}
+                              className="w-full text-left px-3 py-2 text-sm text-white hover:bg-white/10 flex items-center gap-2"
+                            >
+                              <Plus className="w-4 h-4" />
+                              <span className="truncate">{playlist.name}</span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <button onClick={() => toggleLike(currentTrack)}>
+                  <Heart className={cn("w-7 h-7", isLiked ? "text-green-500 fill-current" : "text-white")} />
+                </button>
+              </div>
             </div>
 
             {/* Progress */}

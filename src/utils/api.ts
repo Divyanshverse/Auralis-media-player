@@ -85,6 +85,33 @@ export const getRecommendations = async (): Promise<Track[]> => {
   return searchTracks(randomTerm, 24);
 };
 
+export const getPopularArtistsDynamic = async (): Promise<any[]> => {
+  const popularArtistNames = [
+    "Arijit Singh", "Taylor Swift", "The Weeknd", "Diljit Dosanjh", "Shreya Ghoshal", 
+    "Karan Aujla", "Sidhu Moose Wala", "AP Dhillon", "Ed Sheeran", "Drake", 
+    "Badshah", "Neha Kakkar", "Justin Bieber", "Billie Eilish", "Dua Lipa", 
+    "Atif Aslam", "Sonu Nigam", "Kishore Kumar", "Lata Mangeshkar", "Eminem", 
+    "Post Malone", "A.R. Rahman", "Anirudh Ravichander", "Sid Sriram", "Darshan Raval", 
+    "Armaan Malik", "Bruno Mars", "Ariana Grande", "Rihanna", "Coldplay",
+    "Imagine Dragons", "Maroon 5", "Shawn Mendes", "Charlie Puth", "Zayn",
+    "Harry Styles", "Selena Gomez", "Miley Cyrus", "Katy Perry", "Lady Gaga"
+  ];
+  
+  // Shuffle and pick 6 random artists
+  const shuffled = popularArtistNames.sort(() => 0.5 - Math.random()).slice(0, 6);
+  
+  try {
+    const artists = await Promise.all(shuffled.map(async (name) => {
+      const res = await searchArtists(name, 1);
+      return res[0];
+    }));
+    return artists.filter(Boolean);
+  } catch (error) {
+    console.error("Failed to fetch dynamic artists:", error);
+    return [];
+  }
+};
+
 export const getLyrics = async (trackId: string, artist?: string, title?: string): Promise<string | null> => {
   if (!artist || !title) return null;
   try {

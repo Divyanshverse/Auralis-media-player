@@ -133,7 +133,7 @@ const TrackItem = memo(({
             e.stopPropagation();
             onDropdownToggle(isDropdownOpen ? null : track.id);
           }}
-          className={cn("opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity text-white hover:scale-110", isDropdownOpen && "opacity-100")}
+          className={cn("opacity-100 md:opacity-50 group-hover:opacity-100 transition-opacity text-white hover:scale-110", isDropdownOpen && "opacity-100")}
         >
           <MoreHorizontal className="w-4 h-4" />
         </button>

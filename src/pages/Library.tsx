@@ -1,24 +1,21 @@
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { usePlayerStore } from '../store/usePlayerStore';
 import { Heart, PlusSquare, Music } from 'lucide-react';
 import { cn } from '../utils/helpers';
+import CreatePlaylistModal from '../components/CreatePlaylistModal';
 
 export default function Library() {
-  const { playlists, likedTracks, createPlaylist } = usePlayerStore();
-
-  const handleCreatePlaylist = () => {
-    const name = prompt('Enter playlist name:');
-    if (name) {
-      createPlaylist(name);
-    }
-  };
+  const { playlists, likedTracks } = usePlayerStore();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="p-4 md:p-6 pb-6 h-full overflow-y-auto bg-[#121212]">
+      <CreatePlaylistModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <div className="flex items-center justify-between mb-6 md:mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-white">Your Library</h1>
         <button
-          onClick={handleCreatePlaylist}
+          onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white text-black rounded-full font-bold hover:scale-105 transition-transform text-sm md:text-base"
         >
           <PlusSquare className="w-4 h-4 md:w-5 md:h-5" />

@@ -1,7 +1,7 @@
 import { useEffect, useState, memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayerStore } from '../store/usePlayerStore';
-import { getRecommendations } from '../utils/api';
+import { getRecommendations, getPopularArtistsDynamic, searchTracks } from '../utils/api';
 import { Track } from '../types';
 import { Play, Pause, RotateCw, User } from 'lucide-react';
 import { cn } from '../utils/helpers';
@@ -61,31 +61,39 @@ const TrackCard = memo(({
   );
 });
 
-const POPULAR_ARTISTS = [
-  { name: 'AP Dhillon', image: 'https://c.saavncdn.com/artists/AP_Dhillon_004_20251023102150_500x500.jpg' },
-  { name: 'Arijit Singh', image: 'https://c.saavncdn.com/artists/Arijit_Singh_004_20241118063717_500x500.jpg' },
-  { name: 'Diljit Dosanjh', image: 'https://c.saavncdn.com/artists/Diljit_Dosanjh_005_20231025073054_500x500.jpg' },
-  { name: 'Shreya Ghoshal', image: 'https://c.saavncdn.com/artists/Shreya_Ghoshal_007_20241101074144_500x500.jpg' },
-  { name: 'The Weeknd', image: 'https://c.saavncdn.com/artists/The_Weeknd_002_20241003071400_500x500.jpg' },
-  { name: 'Taylor Swift', image: 'https://c.saavncdn.com/artists/Taylor_Swift_003_20200226074119_500x500.jpg' },
-  { name: 'Karan Aujla', image: 'https://c.saavncdn.com/artists/Karan_Aujla_003_20260218102828_500x500.jpg' },
-  { name: 'Sidhu Moose Wala', image: 'https://c.saavncdn.com/artists/Sidhu_Moose_Wala_004_20250617183705_500x500.jpg' }
-];
-
 export default function Home() {
   const navigate = useNavigate();
   const { history, currentTrack, isPlaying, playTrack, pause } = usePlayerStore();
   const [recommendations, setRecommendations] = useState<Track[]>([]);
+  const [trending, setTrending] = useState<Track[]>([]);
+  const [viralHits, setViralHits] = useState<Track[]>([]);
+  const [chillVibes, setChillVibes] = useState<Track[]>([]);
+  const [popularArtists, setPopularArtists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchRecs = async () => {
+    const fetchHomeData = async () => {
       setLoading(true);
-      const recs = await getRecommendations();
-      setRecommendations(recs);
-      setLoading(false);
+      try {
+        const [recs, artists, trend, viral, chill] = await Promise.all([
+          getRecommendations(),
+          getPopularArtistsDynamic(),
+          searchTracks("global top 50", 12),
+          searchTracks("viral hits", 12),
+          searchTracks("lofi chill beats", 12)
+        ]);
+        setRecommendations(recs);
+        setPopularArtists(artists);
+        setTrending(trend);
+        setViralHits(viral);
+        setChillVibes(chill);
+      } catch (error) {
+        console.error("Failed to fetch home data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
-    fetchRecs();
+    fetchHomeData();
   }, []);
 
   const handlePlay = useCallback((track: Track, context: Track[]) => {
@@ -113,15 +121,21 @@ export default function Home() {
           </button>
         </div>
         <div className="md:hidden flex flex-col items-end text-[10px] text-gray-400 font-medium tracking-wide">
-          <span className="font-['Updock'] text-gray-300 text-xl not-italic">Divyanshverse</span>
-          <span className="text-gray-500 leading-none my-0.5">×</span>
-          <span className="text-[#f96d38] font-bold">AryansDevStudios</span>
+          <span className="font-['Updock'] text-gray-300 text-3xl not-italic tracking-wider">Divyanshverse</span>
         </div>
       </div>
 
       {history.length > 0 && (
         <section className="mb-6 md:mb-8">
-          <h2 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4 hover:underline cursor-pointer">Recently played</h2>
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <h2 className="text-xl md:text-2xl font-bold text-white hover:underline cursor-pointer">Recently played</h2>
+            <button 
+              onClick={() => usePlayerStore.getState().clearHistory()}
+              className="text-xs font-bold text-gray-400 hover:text-white uppercase tracking-wider px-3 py-1 rounded-full border border-gray-600 hover:border-white transition-colors"
+            >
+              Clear
+            </button>
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
             {history.slice(0, 6).map((track, index) => (
               <TrackCard
@@ -140,30 +154,98 @@ export default function Home() {
 
       <section className="mb-6 md:mb-8">
         <h2 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4 hover:underline cursor-pointer">Popular Artists</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
-          {POPULAR_ARTISTS.map(artist => (
-            <div
-              key={artist.name}
-              onClick={() => navigate(`/artist/${encodeURIComponent(artist.name)}`)}
-              className="bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition-colors group cursor-pointer flex flex-col items-center text-center"
-            >
-              <div className="w-full aspect-square mb-4 rounded-full overflow-hidden shadow-lg">
-                <img
-                  src={artist.image}
-                  alt={artist.name}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://c.saavncdn.com/artists/default_500x500.jpg';
-                  }}
-                />
+        {loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-[#181818] p-4 rounded-md animate-pulse flex flex-col items-center">
+                <div className="w-full aspect-square mb-4 rounded-full bg-[#282828]"></div>
+                <div className="h-4 bg-[#282828] rounded w-3/4"></div>
               </div>
-              <h3 className="text-white font-bold truncate w-full">{artist.name}</h3>
-              <p className="text-gray-400 text-sm mt-1">Artist</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
+            {popularArtists.map((artist, i) => (
+              <div
+                key={`${artist.name}-${i}`}
+                onClick={() => navigate(`/artist/${encodeURIComponent(artist.name)}`)}
+                className="bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition-colors group cursor-pointer flex flex-col items-center text-center"
+              >
+                <div className="w-full aspect-square mb-4 rounded-full overflow-hidden shadow-lg">
+                  <img
+                    src={artist.image || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&h=500&fit=crop'}
+                    alt={artist.name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&h=500&fit=crop';
+                    }}
+                  />
+                </div>
+                <h3 className="text-white font-bold truncate w-full">{artist.name}</h3>
+                <p className="text-gray-400 text-sm mt-1">Artist</p>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
+
+      {trending.length > 0 && (
+        <section className="mb-6 md:mb-8">
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4 hover:underline cursor-pointer">Trending Now</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
+            {trending.map((track, index) => (
+              <TrackCard
+                key={`${track.id}-${index}`}
+                track={track}
+                context={trending}
+                isCurrent={currentTrack?.id === track.id}
+                isPlaying={isPlaying}
+                onPlay={handlePlay}
+                onPause={pause}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {viralHits.length > 0 && (
+        <section className="mb-6 md:mb-8">
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4 hover:underline cursor-pointer">Viral Hits</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
+            {viralHits.map((track, index) => (
+              <TrackCard
+                key={`${track.id}-${index}`}
+                track={track}
+                context={viralHits}
+                isCurrent={currentTrack?.id === track.id}
+                isPlaying={isPlaying}
+                onPlay={handlePlay}
+                onPause={pause}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {chillVibes.length > 0 && (
+        <section className="mb-6 md:mb-8">
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4 hover:underline cursor-pointer">Chill Vibes</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
+            {chillVibes.map((track, index) => (
+              <TrackCard
+                key={`${track.id}-${index}`}
+                track={track}
+                context={chillVibes}
+                isCurrent={currentTrack?.id === track.id}
+                isPlaying={isPlaying}
+                onPlay={handlePlay}
+                onPause={pause}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section>
         <h2 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4 hover:underline cursor-pointer">Recommended for you</h2>
