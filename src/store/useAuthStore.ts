@@ -3,13 +3,13 @@ import { persist } from 'zustand/middleware';
 import { usePlayerStore } from './usePlayerStore';
 
 interface User {
-  phoneNumber: string;
+  username: string;
   name?: string;
 }
 
 interface AuthState {
   user: User | null;
-  login: (phoneNumber: string) => void;
+  login: (username: string) => void;
   logout: () => void;
 }
 
@@ -17,14 +17,14 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      login: (phoneNumber) => {
+      login: (username) => {
         set({ 
           user: { 
-            phoneNumber, 
-            name: `User ${phoneNumber.slice(-4)}` 
+            username, 
+            name: username 
           } 
         });
-        usePlayerStore.getState().setActiveProfile(phoneNumber);
+        usePlayerStore.getState().setActiveProfile(username);
       },
       logout: () => {
         set({ user: null });

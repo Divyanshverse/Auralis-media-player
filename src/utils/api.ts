@@ -85,7 +85,19 @@ export const getRecommendations = async (): Promise<Track[]> => {
   return searchTracks(randomTerm, 24);
 };
 
-export const getPopularArtistsDynamic = async (): Promise<any[]> => {
+export const getRecommendationsForArtists = async (artists: {name: string}[]): Promise<Track[]> => {
+  if (!artists || artists.length === 0) {
+    return getRecommendations();
+  }
+  
+  // Pick up to 3 random artists to search for
+  const shuffled = [...artists].sort(() => 0.5 - Math.random()).slice(0, 3);
+  const query = shuffled.map(a => a.name).join(" ");
+  
+  return searchTracks(query, 24);
+};
+
+export const getPopularArtistsDynamic = async (count: number = 6): Promise<any[]> => {
   const popularArtistNames = [
     "Arijit Singh", "Taylor Swift", "The Weeknd", "Diljit Dosanjh", "Shreya Ghoshal", 
     "Karan Aujla", "Sidhu Moose Wala", "AP Dhillon", "Ed Sheeran", "Drake", 
@@ -97,8 +109,8 @@ export const getPopularArtistsDynamic = async (): Promise<any[]> => {
     "Harry Styles", "Selena Gomez", "Miley Cyrus", "Katy Perry", "Lady Gaga"
   ];
   
-  // Shuffle and pick 6 random artists
-  const shuffled = popularArtistNames.sort(() => 0.5 - Math.random()).slice(0, 6);
+  // Shuffle and pick random artists
+  const shuffled = popularArtistNames.sort(() => 0.5 - Math.random()).slice(0, count);
   
   try {
     const artists = await Promise.all(shuffled.map(async (name) => {

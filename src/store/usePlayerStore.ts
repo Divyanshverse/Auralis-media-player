@@ -7,6 +7,7 @@ interface UserProfileData {
   likedTracks: Track[];
   playlists: Playlist[];
   downloadedTracks: string[];
+  favoriteArtists: { id: string; name: string; image: string }[];
 }
 
 interface PlayerState {
@@ -21,6 +22,7 @@ interface PlayerState {
   likedTracks: Track[];
   playlists: Playlist[];
   downloadedTracks: string[];
+  favoriteArtists: { id: string; name: string; image: string }[];
   
   // Profiles
   activeProfileId: string;
@@ -57,6 +59,10 @@ interface PlayerState {
   // Offline
   addDownloadedTrack: (id: string) => void;
   removeDownloadedTrack: (id: string) => void;
+
+  // Favorite Artists
+  addFavoriteArtist: (artist: { id: string; name: string; image: string }) => void;
+  removeFavoriteArtist: (id: string) => void;
 }
 
 export const usePlayerStore = create<PlayerState>()(
@@ -73,6 +79,7 @@ export const usePlayerStore = create<PlayerState>()(
       likedTracks: [],
       playlists: [],
       downloadedTracks: [],
+      favoriteArtists: [],
       
       activeProfileId: 'guest',
       profiles: {},
@@ -86,6 +93,7 @@ export const usePlayerStore = create<PlayerState>()(
           likedTracks: state.likedTracks,
           playlists: state.playlists,
           downloadedTracks: state.downloadedTracks,
+          favoriteArtists: state.favoriteArtists,
         };
 
         const updatedProfiles = {
@@ -99,6 +107,7 @@ export const usePlayerStore = create<PlayerState>()(
           likedTracks: [],
           playlists: [],
           downloadedTracks: [],
+          favoriteArtists: [],
         };
 
         return {
@@ -108,6 +117,7 @@ export const usePlayerStore = create<PlayerState>()(
           likedTracks: newProfileData.likedTracks,
           playlists: newProfileData.playlists,
           downloadedTracks: newProfileData.downloadedTracks,
+          favoriteArtists: newProfileData.favoriteArtists || [],
         };
       }),
 
@@ -264,6 +274,15 @@ export const usePlayerStore = create<PlayerState>()(
       removeDownloadedTrack: (id) => set((state) => ({
         downloadedTracks: state.downloadedTracks.filter(tId => tId !== id)
       })),
+
+      addFavoriteArtist: (artist) => set((state) => {
+        if (state.favoriteArtists.some(a => a.id === artist.id)) return state;
+        return { favoriteArtists: [...state.favoriteArtists, artist] };
+      }),
+
+      removeFavoriteArtist: (id) => set((state) => ({
+        favoriteArtists: state.favoriteArtists.filter(a => a.id !== id)
+      })),
     }),
     {
       name: 'spotify-clone-storage-v2',
@@ -273,6 +292,7 @@ export const usePlayerStore = create<PlayerState>()(
           likedTracks: state.likedTracks,
           playlists: state.playlists,
           downloadedTracks: state.downloadedTracks,
+          favoriteArtists: state.favoriteArtists,
         };
         
         return {
@@ -298,6 +318,7 @@ export const usePlayerStore = create<PlayerState>()(
             likedTracks: persistedState.likedTracks || [],
             playlists: persistedState.playlists || [],
             downloadedTracks: persistedState.downloadedTracks || [],
+            favoriteArtists: persistedState.favoriteArtists || [],
           };
         }
 
@@ -306,6 +327,7 @@ export const usePlayerStore = create<PlayerState>()(
           likedTracks: [],
           playlists: [],
           downloadedTracks: [],
+          favoriteArtists: [],
         };
 
         return {
@@ -317,6 +339,7 @@ export const usePlayerStore = create<PlayerState>()(
           likedTracks: activeProfileData.likedTracks || [],
           playlists: activeProfileData.playlists || [],
           downloadedTracks: activeProfileData.downloadedTracks || [],
+          favoriteArtists: activeProfileData.favoriteArtists || [],
         };
       },
     }

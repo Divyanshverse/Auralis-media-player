@@ -127,6 +127,20 @@ const TrackItem = memo(({
         >
           <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
         </button>
+        
+        {playlistId && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemoveFromPlaylist(playlistId, track.id);
+            }}
+            className="opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"
+            title="Remove from playlist"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+
         <div className="w-10 text-right hidden md:block">{formatTime(track.duration)}</div>
         <button 
           onClick={(e) => {
@@ -193,22 +207,6 @@ const TrackItem = memo(({
                 ))
               )}
             </div>
-            {playlistId && (
-              <>
-                <div className="border-t border-white/10 my-1"></div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemoveFromPlaylist(playlistId, track.id);
-                    onDropdownToggle(null);
-                  }}
-                  className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-white/10 flex items-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Remove from this playlist</span>
-                </button>
-              </>
-            )}
           </div>
         )}
       </div>

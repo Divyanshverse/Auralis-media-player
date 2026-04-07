@@ -4,13 +4,13 @@ import { cn } from "../utils/helpers";
 
 export default function BottomNav() {
   return (
-    <div className="md:hidden flex items-center justify-around bg-black text-gray-400 p-2 pb-4 border-t border-white/10 shrink-0">
+    <div className="md:hidden flex items-center justify-around bg-[#121212]/80 backdrop-blur-2xl text-gray-400 p-2 pb-4 border-t border-white/5 shrink-0">
       <NavLink
         to="/home"
         className={({ isActive }) =>
           cn(
             "flex flex-col items-center gap-1 text-[10px] transition-colors",
-            isActive ? "text-white" : "hover:text-white"
+            isActive ? "text-white drop-shadow-md" : "hover:text-white"
           )
         }
       >
@@ -22,7 +22,7 @@ export default function BottomNav() {
         className={({ isActive }) =>
           cn(
             "flex flex-col items-center gap-1 text-[10px] transition-colors",
-            isActive ? "text-white" : "hover:text-white"
+            isActive ? "text-white drop-shadow-md" : "hover:text-white"
           )
         }
       >
@@ -34,7 +34,7 @@ export default function BottomNav() {
         className={({ isActive }) =>
           cn(
             "flex flex-col items-center gap-1 text-[10px] transition-colors",
-            isActive ? "text-white" : "hover:text-white"
+            isActive ? "text-white drop-shadow-md" : "hover:text-white"
           )
         }
       >
@@ -46,7 +46,7 @@ export default function BottomNav() {
         className={({ isActive }) =>
           cn(
             "flex flex-col items-center gap-1 text-[10px] transition-colors",
-            isActive ? "text-white" : "hover:text-white"
+            isActive ? "text-white drop-shadow-md" : "hover:text-white"
           )
         }
       >
@@ -58,7 +58,7 @@ export default function BottomNav() {
         className={({ isActive }) =>
           cn(
             "flex flex-col items-center gap-1 text-[10px] transition-colors",
-            isActive ? "text-white" : "hover:text-white"
+            isActive ? "text-white drop-shadow-md" : "hover:text-white"
           )
         }
       >

@@ -388,9 +388,9 @@ export default function Player() {
       {/* Mini Player (Mobile) & Standard Player (Desktop) */}
       <div 
         className={cn(
-          "bg-[#282828] md:bg-[#181818] flex items-center justify-between shrink-0 transition-all cursor-pointer md:cursor-default relative overflow-hidden",
-          "md:h-24 md:border-t md:border-[#282828] md:px-4 md:m-0 md:rounded-none",
-          "h-14 mx-2 mb-2 px-2 rounded-md", // Mobile styles
+          "bg-[#181818]/80 backdrop-blur-2xl flex items-center justify-between shrink-0 transition-all cursor-pointer md:cursor-default relative overflow-hidden",
+          "md:h-24 md:border-t md:border-white/5 md:px-4 md:m-0 md:rounded-none",
+          "h-14 mx-2 mb-2 px-2 rounded-md border border-white/5", // Mobile styles
           isExpanded ? "hidden md:flex" : "flex"
         )}
         onClick={() => {
@@ -432,7 +432,7 @@ export default function Player() {
           <button
             onClick={(e) => { e.stopPropagation(); toggleLike(currentTrack); }}
             className={cn(
-              "text-gray-400 hover:text-white transition-colors hidden sm:block",
+              "text-gray-400 hover:text-white transition-colors",
               isLiked && "text-green-500 hover:text-green-400",
             )}
           >

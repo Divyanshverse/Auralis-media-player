@@ -21,6 +21,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const SongDetails = lazy(() => import('./pages/SongDetails'));
 const ArtistDetails = lazy(() => import('./pages/ArtistDetails'));
 const AlbumDetails = lazy(() => import('./pages/AlbumDetails'));
+const Login = lazy(() => import('./pages/Login'));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center h-full w-full text-gray-400 absolute inset-0 bg-[#121212] z-40">
@@ -31,34 +32,56 @@ const LoadingFallback = () => (
 export default function App() {
   return (
     <Router>
-      <div className="fixed inset-0 flex flex-col bg-black overflow-hidden font-sans">
-        <div className="flex flex-1 overflow-hidden">
-          <div className="hidden md:flex">
-            <Sidebar />
-          </div>
-          <main className="flex-1 relative bg-[#121212] md:rounded-lg md:m-2 md:ml-0 overflow-hidden">
+      <div className="fixed inset-0 flex flex-col bg-[#0a0a0a] overflow-hidden font-sans">
+        {/* Global Premium Background Effects for Glassmorphism */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-green-500/10 rounded-full blur-[120px] opacity-50 mix-blend-screen animate-pulse" style={{ animationDuration: '8s' }}></div>
+          <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-emerald-600/10 rounded-full blur-[120px] opacity-50 mix-blend-screen animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }}></div>
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay"></div>
+        </div>
+
+        <Routes>
+          <Route path="/login" element={
             <ErrorBoundary>
               <Suspense fallback={<LoadingFallback />}>
-                <Routes>
-                  <Route path="/" element={<Navigate to="/home" replace />} />
-                  <Route path="/home" element={<Home />} />
-                  <Route path="/search" element={<Search />} />
-                  <Route path="/library" element={<Library />} />
-                  <Route path="/liked" element={<Liked />} />
-                  <Route path="/playlist/:id" element={<Playlist />} />
-                  <Route path="/queue" element={<Queue />} />
-                  <Route path="/downloaded" element={<Downloaded />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/song/:id" element={<SongDetails />} />
-                  <Route path="/artist/:name" element={<ArtistDetails />} />
-                  <Route path="/album/:id" element={<AlbumDetails />} />
-                </Routes>
+                <Login />
               </Suspense>
             </ErrorBoundary>
-          </main>
-        </div>
-        <Player />
-        <BottomNav />
+          } />
+          <Route path="*" element={
+            <>
+              <div className="flex flex-1 overflow-hidden relative z-10">
+                <div className="hidden md:flex">
+                  <Sidebar />
+                </div>
+                <main className="flex-1 relative bg-transparent md:rounded-lg md:m-2 md:ml-0 overflow-hidden">
+                  <ErrorBoundary>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <Routes>
+                        <Route path="/" element={<Navigate to="/home" replace />} />
+                        <Route path="/home" element={<Home />} />
+                        <Route path="/search" element={<Search />} />
+                        <Route path="/library" element={<Library />} />
+                        <Route path="/liked" element={<Liked />} />
+                        <Route path="/playlist/:id" element={<Playlist />} />
+                        <Route path="/queue" element={<Queue />} />
+                        <Route path="/downloaded" element={<Downloaded />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/song/:id" element={<SongDetails />} />
+                        <Route path="/artist/:name" element={<ArtistDetails />} />
+                        <Route path="/album/:id" element={<AlbumDetails />} />
+                      </Routes>
+                    </Suspense>
+                  </ErrorBoundary>
+                </main>
+              </div>
+              <div className="relative z-20">
+                <Player />
+                <BottomNav />
+              </div>
+            </>
+          } />
+        </Routes>
       </div>
     </Router>
   );
