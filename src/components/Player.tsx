@@ -140,9 +140,9 @@ export default function Player() {
         const isYouTube = currentTrack.url.includes('youtube.com') || currentTrack.url.includes('youtu.be') || currentTrack.url.includes('/api/stream');
         console.log("isYouTube:", isYouTube, "url:", currentTrack.url);
         
-        let urlToPlay = offlineUrl || currentTrack.url;
+        let urlToPlay = offlineUrl || currentTrack.fullUrl || currentTrack.url;
         
-        if (!offlineUrl && isYouTube) {
+        if (!offlineUrl && !currentTrack.fullUrl && isYouTube) {
           try {
             console.log("Resolving track...");
             // Extract id, title, artist from currentTrack.url if it's an /api/stream URL

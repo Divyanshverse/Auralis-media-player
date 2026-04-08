@@ -63,6 +63,11 @@ interface PlayerState {
   // Favorite Artists
   addFavoriteArtist: (artist: { id: string; name: string; image: string }) => void;
   removeFavoriteArtist: (id: string) => void;
+
+  // Login Popup
+  songsPlayedCount: number;
+  showLoginPopup: boolean;
+  setShowLoginPopup: (show: boolean) => void;
 }
 
 export const usePlayerStore = create<PlayerState>()(
@@ -80,9 +85,13 @@ export const usePlayerStore = create<PlayerState>()(
       playlists: [],
       downloadedTracks: [],
       favoriteArtists: [],
+      songsPlayedCount: 0,
+      showLoginPopup: false,
       
       activeProfileId: 'guest',
       profiles: {},
+
+      setShowLoginPopup: (show) => set({ showLoginPopup: show }),
 
       setActiveProfile: (newId) => set((state) => {
         if (state.activeProfileId === newId) return state;
@@ -138,11 +147,23 @@ export const usePlayerStore = create<PlayerState>()(
           }
         }
 
+        let songsPlayedCount = state.songsPlayedCount;
+        let showLoginPopup = state.showLoginPopup;
+
+        if (state.activeProfileId === 'guest') {
+          songsPlayedCount += 1;
+          if (songsPlayedCount % 5 === 0) {
+            showLoginPopup = true;
+          }
+        }
+
         return {
           currentTrack: track,
           queue: finalQueue,
           isPlaying: true,
           history,
+          songsPlayedCount,
+          showLoginPopup,
         };
       }),
       
@@ -301,6 +322,8 @@ export const usePlayerStore = create<PlayerState>()(
           repeatMode: state.repeatMode,
           isShuffle: state.isShuffle,
           activeProfileId: state.activeProfileId,
+          songsPlayedCount: state.songsPlayedCount,
+          showLoginPopup: state.showLoginPopup,
           profiles: {
             ...state.profiles,
             [state.activeProfileId]: currentProfileData,
@@ -335,6 +358,8 @@ export const usePlayerStore = create<PlayerState>()(
           ...persistedState,
           activeProfileId,
           profiles,
+          songsPlayedCount: persistedState?.songsPlayedCount || 0,
+          showLoginPopup: persistedState?.showLoginPopup || false,
           history: activeProfileData.history || [],
           likedTracks: activeProfileData.likedTracks || [],
           playlists: activeProfileData.playlists || [],

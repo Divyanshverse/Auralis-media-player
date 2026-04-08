@@ -9,6 +9,8 @@ import Sidebar from './components/Sidebar';
 import Player from './components/Player';
 import BottomNav from './components/BottomNav';
 import ErrorBoundary from './components/ErrorBoundary';
+import LoginPopup from './components/LoginPopup';
+import { usePlayerStore } from './store/usePlayerStore';
 
 const Home = lazy(() => import('./pages/Home'));
 const Search = lazy(() => import('./pages/Search'));
@@ -30,9 +32,12 @@ const LoadingFallback = () => (
 );
 
 export default function App() {
+  const { showLoginPopup, setShowLoginPopup } = usePlayerStore();
+
   return (
     <Router>
       <div className="fixed inset-0 flex flex-col bg-[#0a0a0a] overflow-hidden font-sans">
+        <LoginPopup isOpen={showLoginPopup} onClose={() => setShowLoginPopup(false)} />
         {/* Global Premium Background Effects for Glassmorphism */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-green-500/10 rounded-full blur-[120px] opacity-50 mix-blend-screen animate-pulse" style={{ animationDuration: '8s' }}></div>
