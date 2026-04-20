@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
-import { Music, User, Lock, ArrowRight } from 'lucide-react';
+import { Music, User, Lock, ArrowRight, ArrowLeft } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -42,6 +42,16 @@ export default function Login() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0a0a] font-sans overflow-hidden">
+      {/* Back Button */}
+      <button 
+        onClick={() => navigate(-1)}
+        className="absolute top-6 left-6 z-20 px-4 py-2 flex items-center gap-2 rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all active:scale-95 font-medium"
+        aria-label="Go back"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        Back
+      </button>
+
       {/* Premium Background Effects */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-green-500/20 rounded-full blur-[120px] opacity-60 mix-blend-screen animate-pulse" style={{ animationDuration: '4s' }}></div>

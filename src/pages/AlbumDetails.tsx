@@ -51,7 +51,7 @@ export default function AlbumDetails() {
   const isCurrentAlbum = currentTrack?.album === albumTitle;
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#121212] pb-6">
+    <div className="h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#121212] pb-40">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-end gap-6 p-6 md:p-8 bg-gradient-to-b from-transparent to-black/40">
         <div className="w-48 h-48 md:w-60 md:h-60 shadow-2xl rounded-md bg-gray-800 flex items-center justify-center overflow-hidden">

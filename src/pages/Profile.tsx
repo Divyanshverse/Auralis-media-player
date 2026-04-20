@@ -9,7 +9,7 @@ export default function Profile() {
 
   if (!user) {
     return (
-      <div className="p-4 md:p-8 pb-8 h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#121212] flex flex-col items-center justify-center">
+    <div className="p-4 md:p-8 pb-40 h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#121212] flex flex-col items-center justify-center">
         <div className="w-full max-w-md bg-[#181818] rounded-2xl p-8 shadow-2xl border border-white/5 text-center">
           <div className="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-6 mx-auto">
             <User className="w-8 h-8" />
@@ -28,11 +28,13 @@ export default function Profile() {
   }
 
   return (
-    <div className="p-4 md:p-8 pb-8 h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#121212] flex flex-col items-center justify-center">
+    <div className="p-4 md:p-8 pb-40 h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#121212] flex flex-col items-center justify-center">
       <div className="w-full max-w-md bg-[#181818] rounded-2xl p-8 shadow-2xl border border-white/5">
         <div className="flex flex-col items-center text-center">
           <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
-            <span className="text-3xl font-bold text-black">{user.name?.charAt(0).toUpperCase() || 'U'}</span>
+            <span className="text-3xl font-bold text-black">
+              {user.name?.charAt(0).toUpperCase() || user.username?.charAt(0).toUpperCase() || 'U'}
+            </span>
           </div>
           <h2 className="text-2xl font-bold text-white mb-1">{user.name}</h2>
           <p className="text-gray-400 text-sm mb-8 flex items-center justify-center gap-2">

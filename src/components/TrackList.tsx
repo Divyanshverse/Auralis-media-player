@@ -51,7 +51,7 @@ const TrackItem = memo(({
   return (
     <div
       className="group flex md:grid md:grid-cols-[16px_4fr_3fr_2fr_minmax(150px,1fr)] gap-3 md:gap-4 px-3 md:px-4 py-2 text-sm text-gray-400 hover:bg-white/10 rounded-md transition-colors items-center cursor-pointer relative"
-      onClick={() => onNavigateToSong(track)}
+      onClick={() => onPlay(track)}
     >
       <div className="w-4 hidden md:flex justify-center">
         {isCurrent && isPlaying ? (
@@ -161,6 +161,17 @@ const TrackItem = memo(({
             <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-white/10 mb-1">
               Options
             </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onNavigateToSong(track);
+                onDropdownToggle(null);
+              }}
+              className="w-full text-left px-3 py-2 text-sm text-white hover:bg-white/10 flex items-center gap-2"
+            >
+              <Play className="w-4 h-4" />
+              <span>View Song</span>
+            </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();

@@ -21,7 +21,7 @@ export const useAuthStore = create<AuthState>()(
         set({ 
           user: { 
             username, 
-            name: username 
+            name: '' 
           } 
         });
         usePlayerStore.getState().setActiveProfile(username);

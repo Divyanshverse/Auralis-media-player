@@ -52,7 +52,7 @@ export default function Search() {
   }, [query]);
 
   return (
-    <div className="p-4 md:p-6 pb-6 h-full overflow-y-auto bg-[#121212]/40 backdrop-blur-3xl">
+    <div className="p-4 md:p-6 pb-40 h-full overflow-y-auto bg-[#121212]/40 backdrop-blur-3xl">
       <div className="sticky top-0 z-10 bg-[#121212]/80 backdrop-blur-xl pt-2 pb-4 md:pb-6 border-b border-white/5 mb-6">
         <div className="relative max-w-md">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

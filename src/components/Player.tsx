@@ -388,9 +388,9 @@ export default function Player() {
       {/* Mini Player (Mobile) & Standard Player (Desktop) */}
       <div 
         className={cn(
-          "bg-[#181818]/80 backdrop-blur-2xl flex items-center justify-between shrink-0 transition-all cursor-pointer md:cursor-default relative overflow-hidden",
-          "md:h-24 md:border-t md:border-white/5 md:px-4 md:m-0 md:rounded-none",
-          "h-14 mx-2 mb-2 px-2 rounded-md border border-white/5", // Mobile styles
+          "bg-[#181818]/95 backdrop-blur-2xl flex items-center justify-between shrink-0 transition-all cursor-pointer md:cursor-default relative overflow-hidden",
+          "md:h-24 md:border-t md:border-white/5 md:px-4 md:m-0 md:rounded-none md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto",
+          "fixed bottom-[88px] left-2 right-2 h-14 px-2 rounded-xl border border-white/10 z-40 shadow-2xl", // Mobile styles
           isExpanded ? "hidden md:flex" : "flex"
         )}
         onClick={() => {
@@ -637,110 +637,57 @@ export default function Player() {
 
       {/* Full Screen Mobile Player */}
       {isExpanded && (
-        <div className="fixed inset-0 z-50 bg-gradient-to-b from-gray-800 to-[#121212] flex flex-col md:hidden animate-in slide-in-from-bottom-full duration-300">
+        <div className="fixed inset-0 z-[100] flex flex-col md:hidden animate-in slide-in-from-bottom-full duration-300 overflow-hidden h-[100dvh]">
+          {/* Blurred Background */}
+          <div 
+            className="absolute inset-0 z-0 bg-cover bg-center blur-3xl scale-110 opacity-40"
+            style={{ backgroundImage: `url(${currentTrack.artwork})` }}
+          />
+          <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/40 via-[#121212]/80 to-[#121212]" />
+
           {/* Header */}
-          <div className="flex items-center justify-between p-4 pt-6">
-            <button onClick={() => { setIsExpanded(false); setShowLyrics(false); }} className="p-2">
-              <ChevronDown className="w-6 h-6 text-white" />
-            </button>
-            <div className="text-center flex flex-col items-center">
-              <span className="text-[10px] text-white font-bold tracking-widest uppercase opacity-80">
-                Playing from playlist
-              </span>
-              <span className="text-xs text-white font-bold mt-0.5">
-                {currentTrack.album || "Single"}
-              </span>
-            </div>
+          <div className="relative z-10 flex items-center justify-between p-4 pt-8 shrink-0">
             <button 
-              className="p-2"
+              onClick={() => { setIsExpanded(false); setShowLyrics(false); }} 
+              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-md"
+            >
+              <ChevronDown className="w-6 h-6 text-white rotate-90" />
+            </button>
+            <span className="text-sm font-semibold tracking-wide text-white/80 uppercase">
+              Now Playing
+            </span>
+            <button 
+              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-md"
               onClick={(e) => {
                 e.stopPropagation();
-                downloadToDevice(currentTrack);
+                toggleLike(currentTrack);
               }}
             >
-              <FileDown className="w-6 h-6 text-white" />
+              <Heart className={cn("w-5 h-5", isLiked ? "text-red-500 fill-current" : "text-white")} />
             </button>
           </div>
 
           {/* Artwork */}
-          <div className="flex-1 p-6 flex items-center justify-center max-h-[50vh]">
-            <img 
-              src={currentTrack.artwork} 
-              alt={currentTrack.title}
-              className="w-full max-w-[320px] aspect-square object-cover rounded-lg shadow-2xl" 
-            />
+          <div className="relative z-10 flex-1 p-4 flex items-center justify-center min-h-0">
+            <div className="w-full max-w-[280px] sm:max-w-[320px] aspect-square rounded-full overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] border-4 border-white/5">
+              <img 
+                src={currentTrack.artwork} 
+                alt={currentTrack.title}
+                className="w-full h-full object-cover animate-[spin_20s_linear_infinite]" 
+                style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
+              />
+            </div>
           </div>
 
           {/* Info & Controls */}
-          <div className="p-6 pb-12 flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col overflow-hidden pr-4">
-                <h2 
-                  className="text-2xl font-bold text-white truncate hover:underline cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsExpanded(false);
-                    navigate(`/song/${currentTrack.id}`, { state: { track: currentTrack } });
-                  }}
-                >
-                  {currentTrack.title}
-                </h2>
-                <p 
-                  className="text-gray-400 text-lg truncate hover:underline cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsExpanded(false);
-                    navigate(`/artist/${encodeURIComponent(currentTrack.artist)}`);
-                  }}
-                >
-                  {currentTrack.artist}
-                </p>
-              </div>
-              <div className="flex items-center gap-4 shrink-0">
-                <div className="relative">
-                  <button onClick={() => setIsPlaylistDropdownOpen(!isPlaylistDropdownOpen)}>
-                    <Plus className={cn("w-7 h-7", isPlaylistDropdownOpen ? "text-green-500" : "text-white")} />
-                  </button>
-                  {isPlaylistDropdownOpen && (
-                    <div 
-                      ref={playlistDropdownRef}
-                      className="absolute bottom-full mb-4 right-0 w-48 bg-[#282828] rounded-md shadow-2xl z-50 py-1 border border-white/10"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-white/10 mb-1">
-                        Add to Playlist
-                      </div>
-                      <div className="max-h-48 overflow-y-auto">
-                        {playlists.length === 0 ? (
-                          <div className="px-3 py-2 text-sm text-gray-400">No playlists found</div>
-                        ) : (
-                          playlists.map(playlist => (
-                            <button
-                              key={playlist.id}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                addTrackToPlaylist(playlist.id, currentTrack);
-                                setIsPlaylistDropdownOpen(false);
-                              }}
-                              className="w-full text-left px-3 py-2 text-sm text-white hover:bg-white/10 flex items-center gap-2"
-                            >
-                              <Plus className="w-4 h-4" />
-                              <span className="truncate">{playlist.name}</span>
-                            </button>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <button onClick={() => toggleLike(currentTrack)}>
-                  <Heart className={cn("w-7 h-7", isLiked ? "text-green-500 fill-current" : "text-white")} />
-                </button>
-              </div>
+          <div className="relative z-10 p-4 pb-8 flex flex-col gap-4 text-center shrink-0">
+            <div className="flex flex-col items-center px-4">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1 line-clamp-1">{currentTrack.title}</h2>
+              <p className="text-gray-400 text-base sm:text-lg line-clamp-1">{currentTrack.artist}</p>
             </div>
 
             {/* Progress */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 mt-2">
               <div className="w-full group flex items-center h-4">
                 <input
                   type="range"
@@ -748,55 +695,37 @@ export default function Player() {
                   max={duration || 100}
                   value={progress}
                   onChange={handleSeek}
-                  className="w-full h-1 bg-gray-600 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
+                  className="w-full h-1.5 bg-gray-600 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-[#cbfb45] [&::-webkit-slider-thumb]:rounded-full"
                   style={{
-                    background: `linear-gradient(to right, #fff ${(progress / (duration || 1)) * 100}%, #4d4d4d ${(progress / (duration || 1)) * 100}%)`,
+                    background: `linear-gradient(to right, #cbfb45 ${(progress / (duration || 1)) * 100}%, #4d4d4d ${(progress / (duration || 1)) * 100}%)`,
                   }}
                 />
               </div>
               <div className="flex justify-between text-xs text-gray-400 font-medium">
                 <span>{formatTime(progress * 1000)}</span>
-                <span>{formatTime((duration || (currentTrack?.duration ? currentTrack.duration / 1000 : 0)) * 1000)}</span>
+                <span>-{formatTime((duration || (currentTrack?.duration ? currentTrack.duration / 1000 : 0)) * 1000 - progress * 1000)}</span>
               </div>
             </div>
 
             {/* Playback Controls */}
-            <div className="flex items-center justify-between mt-2">
-              <button onClick={toggleShuffle} className={cn("text-white", isShuffle && "text-green-500")}>
+            <div className="flex items-center justify-between mt-2 px-2">
+              <button onClick={toggleShuffle} className={cn("text-white", isShuffle && "text-[#cbfb45]")}>
                 <Shuffle className="w-6 h-6" />
               </button>
               <button onClick={handlePrevious} className="text-white">
-                <SkipBack className="w-10 h-10 fill-current" />
+                <SkipBack className="w-8 h-8 sm:w-10 sm:h-10 fill-current" />
               </button>
               <button 
                 onClick={isPlaying ? pause : resume} 
-                className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-transform"
+                className="w-16 h-16 sm:w-20 sm:h-20 bg-[#cbfb45] rounded-full flex items-center justify-center text-black shadow-[0_0_20px_rgba(203,251,69,0.3)] hover:scale-105 transition-transform shrink-0"
               >
-                {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current ml-1" />}
+                {isPlaying ? <Pause className="w-8 h-8 sm:w-10 sm:h-10 fill-current" /> : <Play className="w-8 h-8 sm:w-10 sm:h-10 fill-current ml-1" />}
               </button>
               <button onClick={next} className="text-white">
-                <SkipForward className="w-10 h-10 fill-current" />
-              </button>
-              <button onClick={toggleRepeat} className={cn("text-white relative", repeatMode !== 'off' && "text-green-500")}>
-                <Repeat className="w-6 h-6" />
-                {repeatMode === "one" && (
-                  <span className="absolute -top-1 -right-1 text-[8px] font-bold bg-[#181818] rounded-full w-3 h-3 flex items-center justify-center">
-                    1
-                  </span>
-                )}
-              </button>
-            </div>
-            
-            {/* Bottom Actions */}
-            <div className="flex items-center justify-between mt-4">
-              <button 
-                className={cn("text-white transition-colors", showLyrics && "text-green-500")}
-                onClick={() => setShowLyrics(!showLyrics)}
-              >
-                <Mic2 className="w-5 h-5" />
+                <SkipForward className="w-8 h-8 sm:w-10 sm:h-10 fill-current" />
               </button>
               <button className="text-white">
-                <ListMusic className="w-5 h-5" onClick={() => { setIsExpanded(false); navigate('/queue'); }} />
+                <ListMusic className="w-6 h-6" onClick={() => { setIsExpanded(false); navigate('/queue'); }} />
               </button>
             </div>
           </div>

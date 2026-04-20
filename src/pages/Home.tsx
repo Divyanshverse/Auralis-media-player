@@ -1,9 +1,10 @@
 import { useEffect, useState, memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayerStore } from '../store/usePlayerStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { getPopularArtistsDynamic, searchTracks } from '../utils/api';
 import { Track } from '../types';
-import { Play, Pause, RotateCw, User, Plus } from 'lucide-react';
+import { Play, Pause, RotateCw, User, Plus, Bell, Heart, Download, MoreHorizontal, Music } from 'lucide-react';
 import { cn } from '../utils/helpers';
 import ArtistSearchModal from '../components/ArtistSearchModal';
 
@@ -64,6 +65,65 @@ const TrackCard = memo(({
   );
 });
 
+const TrackListItem = memo(({ 
+  track, 
+  context, 
+  isCurrent, 
+  isPlaying, 
+  onPlay, 
+  onPause,
+  customSubtitle
+}: { 
+  track: Track; 
+  context: Track[]; 
+  isCurrent: boolean; 
+  isPlaying: boolean; 
+  onPlay: (track: Track, context: Track[]) => void; 
+  onPause: () => void;
+  customSubtitle?: string;
+}) => {
+  const navigate = useNavigate();
+  return (
+    <div
+      className="flex items-center justify-between group cursor-pointer hover:bg-[#282828] p-2 rounded-xl transition-colors"
+      onClick={() => navigate(`/song/${track.id}`, { state: { track } })}
+    >
+      <div className="flex items-center gap-4 flex-1 min-w-0">
+        <img
+          src={track.artwork}
+          alt={track.title}
+          className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
+          loading="lazy"
+        />
+        <div className="flex-1 min-w-0">
+          <h4 className="text-white font-bold text-base truncate">{track.title}</h4>
+          <p className="text-gray-400 text-sm truncate">By {track.artist} • {customSubtitle || "Song"}</p>
+        </div>
+      </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          if (isCurrent && isPlaying) {
+            onPause();
+          } else {
+            onPlay(track, context);
+          }
+        }}
+        className={cn(
+          "w-8 h-8 rounded-full flex items-center justify-center transition-colors flex-shrink-0 ml-4",
+          isCurrent && isPlaying ? "bg-[#cbfb45] text-black" : "bg-[#282828] text-white group-hover:bg-[#cbfb45] group-hover:text-black"
+        )}
+      >
+        {isCurrent && isPlaying ? (
+          <Pause className="w-4 h-4 fill-current" />
+        ) : (
+          <Play className="w-4 h-4 fill-current ml-0.5" />
+        )}
+      </button>
+    </div>
+  );
+});
+
 const SectionHeader = ({ title, onShowAll }: { title: string, onShowAll?: () => void }) => (
   <div className="flex items-end justify-between mb-4 px-4 md:px-6">
     <h2 className="text-xl md:text-2xl font-bold text-white hover:underline cursor-pointer">{title}</h2>
@@ -85,12 +145,14 @@ interface HomeSection {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { history, currentTrack, isPlaying, playTrack, pause, favoriteArtists } = usePlayerStore();
+  const { user } = useAuthStore();
+  const { history, currentTrack, isPlaying, playTrack, pause, favoriteArtists, likedTracks, toggleLike, playlists, downloadedTracks } = usePlayerStore();
   
   const [sections, setSections] = useState<HomeSection[]>([]);
   const [popularArtists, setPopularArtists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isArtistModalOpen, setIsArtistModalOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<'All' | 'Playlists' | 'Liked Songs' | 'Downloaded'>('All');
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
@@ -219,118 +281,165 @@ export default function Home() {
   );
 
   return (
-    <div className="pt-4 md:pt-6 pb-24 h-full overflow-y-auto overflow-x-hidden bg-gradient-to-b from-[#2a2a2a] to-[#121212]">
+    <div className="pt-4 md:pt-6 pb-40 h-full overflow-y-auto overflow-x-hidden bg-[#121212]">
       
       {/* Top Navigation */}
-      <div className="flex items-center justify-between px-4 md:px-6 mb-6 bg-transparent py-3 -mt-4 md:-mt-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-white">{greeting}</h1>
+      <div className="flex items-center justify-between px-4 md:px-6 mb-8 bg-transparent py-3 -mt-4 md:-mt-6">
+        <div 
+          className="flex items-center gap-3 cursor-pointer"
+          onClick={() => navigate('/profile')}
+        >
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-black font-bold text-xl shadow-lg">
+            {user?.name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || <User className="w-6 h-6" />}
+          </div>
+          <div>
+            <p className="text-sm text-gray-400">{greeting}!</p>
+            <h1 className="text-xl font-bold text-white truncate max-w-[150px]">
+              {user ? (user.name || user.username) : 'Guest'}
+            </h1>
+          </div>
+        </div>
         <div className="flex items-center gap-3 ml-4 shrink-0">
           <button 
-            onClick={() => fetchHomeData()}
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
-            aria-label="Refresh page"
+            className="w-10 h-10 rounded-full bg-[#282828] flex items-center justify-center text-white hover:bg-[#383838] transition-colors"
+            aria-label="Notifications"
           >
-            <RotateCw className="w-4 h-4 md:w-5 md:h-5" />
-          </button>
-          <button 
-            onClick={() => navigate('/profile')}
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
-            aria-label="Profile"
-          >
-            <User className="w-4 h-4 md:w-5 md:h-5" />
+            <Bell className="w-5 h-5" />
           </button>
         </div>
       </div>
 
-      {/* Your Favorite Artists */}
-      <section className="mb-8 md:mb-10">
-        <div className="flex items-center justify-between mb-4 px-4 md:px-6">
-          <h2 className="text-xl md:text-2xl font-bold text-white hover:underline cursor-pointer">Your Favorite Artists</h2>
+      {/* Select Category */}
+      <div className="mb-8 px-4 md:px-6">
+        <h2 className="text-lg font-bold text-white mb-4">Select Category</h2>
+        <div className="flex gap-3 overflow-x-auto hide-scrollbar">
           <button 
-            onClick={() => setIsArtistModalOpen(true)}
-            className="flex items-center gap-1 text-sm font-bold text-white hover:text-green-400 transition-colors"
+            onClick={() => setActiveCategory('All')}
+            className={cn(
+              "px-6 py-2 rounded-full font-semibold whitespace-nowrap transition-colors",
+              activeCategory === 'All' ? "bg-[#cbfb45] text-black" : "bg-[#282828] text-white hover:bg-[#383838]"
+            )}
           >
-            <Plus className="w-4 h-4" /> Add Artists
+            All
+          </button>
+          <button 
+            onClick={() => setActiveCategory('Playlists')}
+            className={cn(
+              "px-6 py-2 rounded-full font-semibold whitespace-nowrap transition-colors",
+              activeCategory === 'Playlists' ? "bg-[#cbfb45] text-black" : "bg-[#282828] text-white hover:bg-[#383838]"
+            )}
+          >
+            Playlists
+          </button>
+          <button 
+            onClick={() => setActiveCategory('Liked Songs')}
+            className={cn(
+              "px-6 py-2 rounded-full font-semibold whitespace-nowrap transition-colors",
+              activeCategory === 'Liked Songs' ? "bg-[#cbfb45] text-black" : "bg-[#282828] text-white hover:bg-[#383838]"
+            )}
+          >
+            Liked Songs
+          </button>
+          <button 
+            onClick={() => setActiveCategory('Downloaded')}
+            className={cn(
+              "px-6 py-2 rounded-full font-semibold whitespace-nowrap transition-colors",
+              activeCategory === 'Downloaded' ? "bg-[#cbfb45] text-black" : "bg-[#282828] text-white hover:bg-[#383838]"
+            )}
+          >
+            Downloaded
           </button>
         </div>
-        <div className="flex overflow-x-auto gap-4 pb-4 px-4 md:px-6 snap-x snap-mandatory hide-scrollbar after:content-[''] after:w-4 after:shrink-0">
-          {favoriteArtists.length === 0 ? (
-            <div 
-              onClick={() => setIsArtistModalOpen(true)}
-              className="w-[140px] md:w-[180px] p-3 md:p-4 bg-[#181818] hover:bg-[#282828] rounded-lg transition-colors cursor-pointer flex flex-col items-center justify-center text-center flex-shrink-0 snap-start border border-dashed border-gray-600"
-            >
-              <Plus className="w-8 h-8 text-gray-400 mb-2" />
-              <p className="text-gray-400 text-sm">Add your favorites</p>
-            </div>
-          ) : (
-            favoriteArtists.map((artist, i) => (
-              <div
-                key={`${artist.id}-${i}`}
-                onClick={() => navigate(`/artist/${encodeURIComponent(artist.name)}`)}
-                className="w-[140px] md:w-[180px] p-3 md:p-4 bg-[#181818] hover:bg-[#282828] rounded-lg transition-colors group cursor-pointer flex flex-col items-center text-center flex-shrink-0 snap-start"
-              >
-                <div className="w-full aspect-square mb-3 md:mb-4 rounded-full overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
-                  <img
-                    src={artist.image}
-                    alt={artist.name}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-                <h3 className="text-white font-bold text-sm md:text-base truncate w-full">{artist.name}</h3>
-                <p className="text-gray-400 text-xs md:text-sm mt-1">Artist</p>
-              </div>
-            ))
-          )}
-        </div>
-      </section>
+      </div>
 
-      {/* Jump Back In (History) */}
-      {history.length > 0 && (
-        <section className="mb-8 md:mb-10">
-          <SectionHeader title="Jump back in" onShowAll={() => usePlayerStore.getState().clearHistory()} />
-          <div className="flex overflow-x-auto gap-4 pb-4 px-4 md:px-6 snap-x snap-mandatory hide-scrollbar after:content-[''] after:w-4 after:shrink-0">
-            {history.slice(0, 10).map((track, index) => (
-              <TrackCard
-                key={`${track.id}-${index}`}
+      {activeCategory === 'All' && (
+        <>
+          {/* Latest & Trending */}
+      <div className="mb-8 px-4 md:px-6">
+        <h2 className="text-lg font-bold text-white mb-4">Latest & Trending</h2>
+        <div 
+          onClick={() => sections.length > 0 && handlePlay(sections[0].tracks[0], sections[0].tracks)}
+          className="w-full bg-gradient-to-r from-[#d9a7ff] to-[#a67cff] rounded-2xl p-6 relative overflow-hidden flex justify-between items-center cursor-pointer hover:scale-[1.02] transition-transform"
+        >
+          <div className="z-10 w-2/3">
+            <h3 className="text-2xl font-bold text-black mb-2">Discover Weekly</h3>
+            <p className="text-black/80 text-sm mb-6">The Original slow instrumental<br/>best Playlists</p>
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (sections.length > 0) {
+                    const track = sections[0].tracks[0];
+                    if (currentTrack?.id === track.id && isPlaying) {
+                      pause();
+                    } else {
+                      handlePlay(track, sections[0].tracks);
+                    }
+                  }
+                }}
+                className="w-10 h-10 bg-[#8a4fff] rounded-full flex items-center justify-center text-white shadow-lg"
+              >
+                {sections.length > 0 && currentTrack?.id === sections[0].tracks[0].id && isPlaying ? (
+                  <Pause className="w-5 h-5 fill-current" />
+                ) : (
+                  <Play className="w-5 h-5 fill-current ml-1" />
+                )}
+              </button>
+              <Heart 
+                className={cn(
+                  "w-5 h-5 cursor-pointer transition-colors",
+                  sections.length > 0 && likedTracks.some(t => t.id === sections[0].tracks[0].id) ? "text-red-500 fill-current" : "text-purple-900"
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (sections.length > 0) toggleLike(sections[0].tracks[0]);
+                }}
+              />
+              <Download className="w-5 h-5 text-purple-900 cursor-pointer hover:text-purple-700 transition-colors" />
+              <MoreHorizontal className="w-5 h-5 text-purple-900 cursor-pointer hover:text-purple-700 transition-colors" />
+            </div>
+          </div>
+          <div className="absolute right-0 top-0 bottom-0 w-1/2 flex justify-end">
+            <img 
+              src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&h=500&fit=crop" 
+              className="h-full object-cover mix-blend-overlay opacity-90" 
+              alt="Discover" 
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Top Daily playlists (List View) */}
+      {sections.length > 0 && (
+        <div className="mb-8 px-4 md:px-6">
+          <div className="flex justify-between items-end mb-4">
+            <h2 className="text-lg font-bold text-white">Top Daily playlists</h2>
+            <span className="text-sm text-gray-400 cursor-pointer hover:text-white transition-colors">See all</span>
+          </div>
+          <div className="flex flex-col gap-2">
+            {sections[0].tracks.slice(0, 5).map(track => (
+              <TrackListItem
+                key={track.id}
                 track={track}
-                context={history}
+                context={sections[0].tracks}
                 isCurrent={currentTrack?.id === track.id}
                 isPlaying={isPlaying}
                 onPlay={handlePlay}
                 onPause={pause}
+                customSubtitle="8 Songs"
               />
             ))}
           </div>
-        </section>
+        </div>
       )}
 
-      {/* Dynamic Sections */}
+      {/* Other Dynamic Sections (Horizontal scroll) */}
       {loading ? (
-        <>
-          <section className="mb-8 md:mb-10"><SectionHeader title="Loading..." />{renderSkeletons()}</section>
-          <section className="mb-8 md:mb-10"><SectionHeader title="Loading..." />{renderSkeletons()}</section>
-          <section className="mb-8 md:mb-10"><SectionHeader title="Loading..." />{renderSkeletons()}</section>
-        </>
+        <div className="px-4 md:px-6">{renderSkeletons()}</div>
       ) : (
-        sections.map((section) => (
+        sections.slice(1).map((section) => (
           <section key={section.id} className="mb-8 md:mb-10">
-            {section.artistImage ? (
-              <div className="flex items-center gap-3 px-4 md:px-6 mb-4">
-                <img 
-                  src={section.artistImage} 
-                  className="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover shadow-lg"
-                  alt=""
-                />
-                <div>
-                  <p className="text-xs text-gray-400 uppercase tracking-wider font-bold">Discover more from</p>
-                  <h2 className="text-xl md:text-2xl font-bold text-white hover:underline cursor-pointer">{section.title.replace('Discover more from ', '')}</h2>
-                </div>
-              </div>
-            ) : (
-              <SectionHeader title={section.title} onShowAll={() => {}} />
-            )}
-            
+            <SectionHeader title={section.title} onShowAll={() => {}} />
             <div className="flex overflow-x-auto gap-4 pb-4 px-4 md:px-6 snap-x snap-mandatory hide-scrollbar after:content-[''] after:w-4 after:shrink-0">
               {section.tracks.map((track, index) => (
                 <TrackCard
@@ -348,38 +457,79 @@ export default function Home() {
           </section>
         ))
       )}
+      </>
+      )}
 
-      {/* Popular Artists */}
-      <section className="mb-8 md:mb-10">
-        <div className="flex items-end justify-between mb-4 px-4 md:px-6">
-          <h2 className="text-xl md:text-2xl font-bold text-white hover:underline cursor-pointer">Popular Artists</h2>
-        </div>
-        {loading ? renderSkeletons() : (
-          <div className="flex overflow-x-auto gap-4 pb-4 px-4 md:px-6 snap-x snap-mandatory hide-scrollbar after:content-[''] after:w-4 after:shrink-0">
-            {popularArtists.filter(pa => !favoriteArtists.some(fa => fa.id === pa.id)).map((artist, i) => (
+      {activeCategory === 'Playlists' && (
+        <div className="px-4 md:px-6 flex flex-col gap-2">
+          {playlists.length === 0 ? (
+            <div className="text-center text-gray-400 py-10">No playlists found. Create one in your Library!</div>
+          ) : (
+            playlists.map(playlist => (
               <div
-                key={`${artist.name}-${i}`}
-                onClick={() => navigate(`/artist/${encodeURIComponent(artist.name)}`)}
-                className="w-[140px] md:w-[180px] p-3 md:p-4 bg-[#181818] hover:bg-[#282828] rounded-lg transition-colors group cursor-pointer flex flex-col items-center text-center flex-shrink-0 snap-start"
+                key={playlist.id}
+                className="flex items-center justify-between group cursor-pointer hover:bg-[#282828] p-2 rounded-xl transition-colors"
+                onClick={() => navigate(`/playlist/${playlist.id}`)}
               >
-                <div className="w-full aspect-square mb-3 md:mb-4 rounded-full overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
-                  <img
-                    src={artist.image || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&h=500&fit=crop'}
-                    alt={artist.name}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&h=500&fit=crop';
-                    }}
-                  />
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  {playlist.tracks.length > 0 ? (
+                    <img src={playlist.tracks[0].artwork} alt={playlist.name} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-lg bg-[#282828] flex items-center justify-center flex-shrink-0">
+                      <Music className="w-6 h-6 text-gray-500" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-white font-bold text-base truncate">{playlist.name}</h4>
+                    <p className="text-gray-400 text-sm truncate">By You • {playlist.tracks.length} Songs</p>
+                  </div>
                 </div>
-                <h3 className="text-white font-bold text-sm md:text-base truncate w-full">{artist.name}</h3>
-                <p className="text-gray-400 text-xs md:text-sm mt-1">Artist</p>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (playlist.tracks.length > 0) {
+                      playTrack(playlist.tracks[0], playlist.tracks);
+                    }
+                  }}
+                  className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center text-white group-hover:bg-[#cbfb45] group-hover:text-black transition-colors flex-shrink-0 ml-4"
+                >
+                  <Play className="w-4 h-4 fill-current ml-0.5" />
+                </button>
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+            ))
+          )}
+        </div>
+      )}
+
+      {activeCategory === 'Liked Songs' && (
+        <div className="px-4 md:px-6 flex flex-col gap-2">
+          {likedTracks.length === 0 ? (
+            <div className="text-center text-gray-400 py-10">No liked songs yet.</div>
+          ) : (
+            likedTracks.map(track => (
+              <TrackListItem
+                key={track.id}
+                track={track}
+                context={likedTracks}
+                isCurrent={currentTrack?.id === track.id}
+                isPlaying={isPlaying}
+                onPlay={handlePlay}
+                onPause={pause}
+              />
+            ))
+          )}
+        </div>
+      )}
+
+      {activeCategory === 'Downloaded' && (
+        <div className="px-4 md:px-6 flex flex-col gap-2">
+          {downloadedTracks.length === 0 ? (
+            <div className="text-center text-gray-400 py-10">No downloaded songs yet.</div>
+          ) : (
+            <div className="text-center text-gray-400 py-10">Downloaded songs will appear here.</div>
+          )}
+        </div>
+      )}
 
       <ArtistSearchModal 
         isOpen={isArtistModalOpen} 

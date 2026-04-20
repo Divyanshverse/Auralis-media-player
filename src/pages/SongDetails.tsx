@@ -69,7 +69,7 @@ export default function SongDetails() {
   const containingPlaylists = playlists.filter(p => p.tracks.some(t => t.id === track.id));
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#121212] pb-6">
+    <div className="h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#121212] pb-40">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-end gap-6 p-6 md:p-8 bg-gradient-to-b from-transparent to-black/40">
         <img 

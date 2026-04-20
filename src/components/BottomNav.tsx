@@ -1,69 +1,64 @@
 import { NavLink } from "react-router-dom";
-import { Home, Search, Library, Heart, Download } from "lucide-react";
+import { Home, Search, Library, Heart, Download, Settings, Bookmark, Radio, Music } from "lucide-react";
 import { cn } from "../utils/helpers";
 
 export default function BottomNav() {
   return (
-    <div className="md:hidden flex items-center justify-around bg-[#121212]/80 backdrop-blur-2xl text-gray-400 p-2 pb-4 border-t border-white/5 shrink-0">
+    <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-[#282828]/95 backdrop-blur-xl rounded-full px-6 py-3 flex justify-between items-center z-50 shadow-2xl border border-white/5">
       <NavLink
         to="/home"
         className={({ isActive }) =>
           cn(
-            "flex flex-col items-center gap-1 text-[10px] transition-colors",
-            isActive ? "text-white drop-shadow-md" : "hover:text-white"
+            "flex items-center justify-center transition-all duration-300 rounded-full",
+            isActive ? "bg-[#cbfb45] text-black p-2.5" : "text-gray-400 hover:text-white p-2.5"
           )
         }
       >
-        <Home className="w-5 h-5" />
-        <span>Home</span>
-      </NavLink>
-      <NavLink
-        to="/search"
-        className={({ isActive }) =>
-          cn(
-            "flex flex-col items-center gap-1 text-[10px] transition-colors",
-            isActive ? "text-white drop-shadow-md" : "hover:text-white"
-          )
-        }
-      >
-        <Search className="w-5 h-5" />
-        <span>Search</span>
+        <Home className="w-6 h-6" />
       </NavLink>
       <NavLink
         to="/library"
         className={({ isActive }) =>
           cn(
-            "flex flex-col items-center gap-1 text-[10px] transition-colors",
-            isActive ? "text-white drop-shadow-md" : "hover:text-white"
+            "flex items-center justify-center transition-all duration-300 rounded-full",
+            isActive ? "bg-[#cbfb45] text-black p-2.5" : "text-gray-400 hover:text-white p-2.5"
           )
         }
       >
-        <Library className="w-5 h-5" />
-        <span>Library</span>
+        <Music className="w-6 h-6" />
+      </NavLink>
+      <NavLink
+        to="/search"
+        className={({ isActive }) =>
+          cn(
+            "flex items-center justify-center transition-all duration-300 rounded-full",
+            isActive ? "bg-[#cbfb45] text-black p-2.5" : "text-gray-400 hover:text-white p-2.5"
+          )
+        }
+      >
+        <Radio className="w-6 h-6" />
       </NavLink>
       <NavLink
         to="/liked"
         className={({ isActive }) =>
           cn(
-            "flex flex-col items-center gap-1 text-[10px] transition-colors",
-            isActive ? "text-white drop-shadow-md" : "hover:text-white"
+            "flex items-center justify-center transition-all duration-300 rounded-full",
+            isActive ? "bg-[#cbfb45] text-black p-2.5" : "text-gray-400 hover:text-white p-2.5"
           )
         }
       >
-        <Heart className="w-5 h-5" />
-        <span>Liked</span>
+        <Bookmark className="w-6 h-6" />
       </NavLink>
       <NavLink
-        to="/downloaded"
+        to="/profile"
         className={({ isActive }) =>
           cn(
-            "flex flex-col items-center gap-1 text-[10px] transition-colors",
-            isActive ? "text-white drop-shadow-md" : "hover:text-white"
+            "flex items-center justify-center transition-all duration-300 rounded-full",
+            isActive ? "bg-[#cbfb45] text-black p-2.5" : "text-gray-400 hover:text-white p-2.5"
           )
         }
       >
-        <Download className="w-5 h-5" />
-        <span>Downloads</span>
+        <Settings className="w-6 h-6" />
       </NavLink>
     </div>
   );

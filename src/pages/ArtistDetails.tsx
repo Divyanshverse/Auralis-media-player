@@ -65,7 +65,7 @@ export default function ArtistDetails() {
   const isCurrentArtist = currentTrack?.artist?.includes(decodedName) ?? false;
 
   return (
-    <div className="h-full overflow-y-auto bg-[#121212] pb-6">
+    <div className="h-full overflow-y-auto bg-[#121212] pb-40">
       {/* Header */}
       <div 
         className="flex flex-col md:flex-row items-end gap-6 p-6 md:p-8 transition-colors duration-700"
