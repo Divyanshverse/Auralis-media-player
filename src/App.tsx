@@ -26,8 +26,8 @@ const AlbumDetails = lazy(() => import('./pages/AlbumDetails'));
 const Login = lazy(() => import('./pages/Login'));
 
 const LoadingFallback = () => (
-  <div className="flex items-center justify-center h-full w-full text-gray-400 absolute inset-0 bg-[#121212] z-40">
-    <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+  <div className="flex items-center justify-center h-full w-full text-gray-400 absolute inset-0 bg-[#0B0B0D] z-40">
+    <div className="w-8 h-8 border-4 border-[#A78BFA] border-t-transparent rounded-full animate-spin"></div>
   </div>
 );
 
@@ -36,13 +36,13 @@ export default function App() {
 
   return (
     <Router>
-      <div className="fixed inset-0 flex flex-col bg-[#0a0a0a] overflow-hidden font-sans">
+      <div className="fixed inset-0 flex flex-col bg-[#0f0f13] overflow-hidden font-sans">
         <LoginPopup isOpen={showLoginPopup} onClose={() => setShowLoginPopup(false)} />
         {/* Global Premium Background Effects for Glassmorphism */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-green-500/10 rounded-full blur-[120px] opacity-50 mix-blend-screen animate-pulse" style={{ animationDuration: '8s' }}></div>
-          <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-emerald-600/10 rounded-full blur-[120px] opacity-50 mix-blend-screen animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }}></div>
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay"></div>
+          <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-[#A78BFA]/10 rounded-full blur-[120px] opacity-40 mix-blend-screen animate-pulse" style={{ animationDuration: '8s' }}></div>
+          <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-[#67E8F9]/10 rounded-full blur-[120px] opacity-30 mix-blend-screen animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }}></div>
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
         </div>
 
         <Routes>

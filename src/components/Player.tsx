@@ -368,7 +368,7 @@ export default function Player() {
 
   if (!currentTrack) {
     return (
-      <div className="hidden md:flex h-24 bg-[#181818] border-t border-[#282828] items-center justify-center text-gray-500 text-sm shrink-0">
+      <div className="hidden md:flex h-24 bg-[#141416] border-t border-[#282828] items-center justify-center text-gray-500 text-sm shrink-0">
         Select a track to start listening
       </div>
     );
@@ -388,7 +388,7 @@ export default function Player() {
       {/* Mini Player (Mobile) & Standard Player (Desktop) */}
       <div 
         className={cn(
-          "bg-[#181818]/95 backdrop-blur-2xl flex items-center justify-between shrink-0 transition-all cursor-pointer md:cursor-default relative overflow-hidden",
+          "bg-[#141416]/95 backdrop-blur-2xl flex items-center justify-between shrink-0 transition-all cursor-pointer md:cursor-default relative overflow-hidden",
           "md:h-24 md:border-t md:border-white/5 md:px-4 md:m-0 md:rounded-none md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto",
           "fixed bottom-[88px] left-2 right-2 h-14 px-2 rounded-xl border border-white/10 z-40 shadow-2xl", // Mobile styles
           isExpanded ? "hidden md:flex" : "flex"
@@ -433,7 +433,7 @@ export default function Player() {
             onClick={(e) => { e.stopPropagation(); toggleLike(currentTrack); }}
             className={cn(
               "text-gray-400 hover:text-white transition-colors",
-              isLiked && "text-green-500 hover:text-green-400",
+              isLiked && "text-[#A78BFA] hover:text-[#8B5CF6]",
             )}
           >
             <Heart className={cn("w-5 h-5", isLiked && "fill-current")} />
@@ -454,7 +454,7 @@ export default function Player() {
             {isPlaylistDropdownOpen && (
               <div 
                 ref={playlistDropdownRef}
-                className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-[#282828] rounded-md shadow-2xl z-50 py-1 border border-white/10"
+                className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-[#1f1f22] rounded-md shadow-2xl z-50 py-1 border border-white/10"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-white/10 mb-1">
@@ -509,7 +509,7 @@ export default function Player() {
               onClick={toggleShuffle}
               className={cn(
                 "text-gray-400 hover:text-white transition-colors",
-                isShuffle && "text-green-500 hover:text-green-400",
+                isShuffle && "text-[#A78BFA] hover:text-[#8B5CF6]",
               )}
             >
               <Shuffle className="w-4 h-4" />
@@ -522,7 +522,7 @@ export default function Player() {
             </button>
             <button
               onClick={isPlaying ? pause : resume}
-              className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-black hover:scale-105 transition-transform"
+              className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-[#0B0B0D] hover:scale-105 transition-transform"
             >
               {isPlaying ? (
                 <Pause className="w-4 h-4 fill-current" />
@@ -540,12 +540,12 @@ export default function Player() {
               onClick={toggleRepeat}
               className={cn(
                 "text-gray-400 hover:text-white transition-colors relative",
-                repeatMode !== "off" && "text-green-500 hover:text-green-400",
+                repeatMode !== "off" && "text-[#A78BFA] hover:text-[#8B5CF6]",
               )}
             >
               <Repeat className="w-4 h-4" />
               {repeatMode === "one" && (
-                <span className="absolute -top-1 -right-1 text-[8px] font-bold bg-[#181818] rounded-full w-3 h-3 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 text-[8px] font-bold bg-[#141416] rounded-full w-3 h-3 flex items-center justify-center">
                   1
                 </span>
               )}
@@ -582,7 +582,7 @@ export default function Player() {
             onClick={(e) => { e.stopPropagation(); setShowLyrics(!showLyrics); }}
             className={cn(
               "text-gray-400 hover:text-white transition-colors relative",
-              showLyrics && "text-green-500 hover:text-green-400",
+              showLyrics && "text-[#A78BFA] hover:text-[#8B5CF6]",
             )}
           >
             <Mic2 className="w-5 h-5" />
@@ -591,12 +591,12 @@ export default function Player() {
             onClick={(e) => { e.stopPropagation(); handleQueueClick(); }}
             className={cn(
               "text-gray-400 hover:text-white transition-colors relative",
-              isQueueActive && "text-green-500 hover:text-green-400",
+              isQueueActive && "text-[#A78BFA] hover:text-[#8B5CF6]",
             )}
           >
             <ListMusic className="w-5 h-5" />
             {isQueueActive && (
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-green-500 rounded-full"></div>
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#A78BFA] rounded-full"></div>
             )}
           </button>
           <div className="flex items-center gap-2 group">
@@ -643,7 +643,7 @@ export default function Player() {
             className="absolute inset-0 z-0 bg-cover bg-center blur-3xl scale-110 opacity-40"
             style={{ backgroundImage: `url(${currentTrack.artwork})` }}
           />
-          <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/40 via-[#121212]/80 to-[#121212]" />
+          <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/40 via-[#121212]/80 to-[#0B0B0D]" />
 
           {/* Header */}
           <div className="relative z-10 flex items-center justify-between p-4 pt-8 shrink-0">
@@ -695,7 +695,7 @@ export default function Player() {
                   max={duration || 100}
                   value={progress}
                   onChange={handleSeek}
-                  className="w-full h-1.5 bg-gray-600 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-[#cbfb45] [&::-webkit-slider-thumb]:rounded-full"
+                  className="w-full h-1.5 bg-gray-600 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-[#A78BFA] [&::-webkit-slider-thumb]:rounded-full"
                   style={{
                     background: `linear-gradient(to right, #cbfb45 ${(progress / (duration || 1)) * 100}%, #4d4d4d ${(progress / (duration || 1)) * 100}%)`,
                   }}
@@ -717,7 +717,7 @@ export default function Player() {
               </button>
               <button 
                 onClick={isPlaying ? pause : resume} 
-                className="w-16 h-16 sm:w-20 sm:h-20 bg-[#cbfb45] rounded-full flex items-center justify-center text-black shadow-[0_0_20px_rgba(203,251,69,0.3)] hover:scale-105 transition-transform shrink-0"
+                className="w-16 h-16 sm:w-20 sm:h-20 bg-[#A78BFA] rounded-full flex items-center justify-center text-[#0B0B0D] shadow-[0_0_20px_rgba(203,251,69,0.3)] hover:scale-105 transition-transform shrink-0"
               >
                 {isPlaying ? <Pause className="w-8 h-8 sm:w-10 sm:h-10 fill-current" /> : <Play className="w-8 h-8 sm:w-10 sm:h-10 fill-current ml-1" />}
               </button>
@@ -734,7 +734,7 @@ export default function Player() {
 
       {/* Lyrics Overlay */}
       {showLyrics && currentTrack && (
-        <div className="fixed inset-0 z-[60] bg-[#121212]/95 backdrop-blur-md flex flex-col pt-12 pb-24 px-6 md:px-20 overflow-y-auto animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[60] bg-[#0B0B0D]/95 backdrop-blur-md flex flex-col pt-12 pb-24 px-6 md:px-20 overflow-y-auto animate-in fade-in duration-200">
           <button 
             onClick={() => setShowLyrics(false)} 
             className="absolute top-6 right-6 text-white p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
@@ -744,7 +744,7 @@ export default function Player() {
           <h2 className="text-2xl md:text-4xl font-bold text-white mb-8 text-center">{currentTrack.title} - Lyrics</h2>
           {loadingLyrics ? (
             <div className="flex justify-center mt-20">
-              <div className="animate-spin w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full"></div>
+              <div className="animate-spin w-10 h-10 border-4 border-[#A78BFA] border-t-transparent rounded-full"></div>
             </div>
           ) : lyrics ? (
             <div className="text-white/80 text-lg md:text-2xl leading-relaxed text-center whitespace-pre-wrap max-w-3xl mx-auto font-medium pb-20">

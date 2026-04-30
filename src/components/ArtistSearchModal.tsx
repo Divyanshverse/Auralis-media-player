@@ -48,8 +48,8 @@ export default function ArtistSearchModal({ isOpen, onClose }: ArtistSearchModal
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-[#181818] rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden border border-white/10 shadow-2xl">
-        <div className="p-4 border-b border-white/10 flex justify-between items-center bg-[#282828]">
+      <div className="bg-[#141416] rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden border border-white/10 shadow-2xl">
+        <div className="p-4 border-b border-white/10 flex justify-between items-center bg-[#1f1f22]">
           <h2 className="text-xl font-bold text-white">Choose your favorite artists</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
             <X className="w-6 h-6" />
@@ -73,7 +73,7 @@ export default function ArtistSearchModal({ isOpen, onClose }: ArtistSearchModal
         <div className="flex-1 overflow-y-auto p-4">
           {loading ? (
             <div className="flex justify-center items-center h-32">
-              <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-4 border-[#A78BFA] border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : results.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -84,14 +84,14 @@ export default function ArtistSearchModal({ isOpen, onClose }: ArtistSearchModal
                     key={artist.id}
                     onClick={() => isSelected ? removeFavoriteArtist(artist.id) : addFavoriteArtist(artist)}
                     className={`relative flex flex-col items-center p-3 rounded-xl cursor-pointer transition-all ${
-                      isSelected ? 'bg-green-500/20 border border-green-500/50' : 'hover:bg-white/5 border border-transparent'
+                      isSelected ? 'bg-[#A78BFA]/20 border border-[#A78BFA]/50' : 'hover:bg-white/5 border border-transparent'
                     }`}
                   >
                     <div className="relative w-full aspect-square mb-3">
                       <img src={artist.image} alt={artist.name} className="w-full h-full object-cover rounded-full shadow-lg" />
                       {isSelected && (
                         <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
-                          <Check className="w-8 h-8 text-green-500" />
+                          <Check className="w-8 h-8 text-[#A78BFA]" />
                         </div>
                       )}
                     </div>
@@ -125,10 +125,10 @@ export default function ArtistSearchModal({ isOpen, onClose }: ArtistSearchModal
           )}
         </div>
         
-        <div className="p-4 border-t border-white/10 flex justify-end bg-[#282828]">
+        <div className="p-4 border-t border-white/10 flex justify-end bg-[#1f1f22]">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-white text-black font-bold rounded-full hover:scale-105 transition-transform"
+            className="px-6 py-2 bg-white text-[#0B0B0D] font-bold rounded-full hover:scale-105 transition-transform"
           >
             Done
           </button>

@@ -12,7 +12,7 @@ export default function Sidebar() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="w-64 bg-[#121212]/40 backdrop-blur-2xl border-r border-white/5 h-full flex flex-col text-gray-300 p-4 shrink-0">
+    <div className="w-64 bg-[#0B0B0D]/40 backdrop-blur-2xl border-r border-white/5 h-full flex flex-col text-gray-300 p-4 shrink-0">
       <CreatePlaylistModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <div className="flex items-center gap-2 px-2 mb-8">
         <Music className="w-8 h-8 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
@@ -77,7 +77,7 @@ export default function Sidebar() {
           onClick={() => setIsModalOpen(true)}
           className="flex w-full items-center gap-4 px-2 py-1 text-sm font-semibold transition-colors text-gray-400 hover:text-white group"
         >
-          <div className="bg-gray-400 group-hover:bg-white p-1 rounded-sm text-black transition-colors">
+          <div className="bg-gray-400 group-hover:bg-[#A78BFA] p-1 rounded-sm text-[#0B0B0D] transition-colors">
             <PlusSquare className="w-4 h-4" />
           </div>
           Create Playlist
@@ -91,7 +91,7 @@ export default function Sidebar() {
             )
           }
         >
-          <div className="bg-gradient-to-br from-green-600 to-emerald-300 p-1 rounded-sm text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]">
+          <div className="bg-gradient-to-br from-[#A78BFA] to-[#67E8F9] p-1 rounded-sm text-[#0B0B0D] shadow-[0_0_10px_rgba(167,139,250,0.3)]">
             <Download className="w-4 h-4" />
           </div>
           Downloaded

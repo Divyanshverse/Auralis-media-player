@@ -4,13 +4,13 @@ import { cn } from "../utils/helpers";
 
 export default function BottomNav() {
   return (
-    <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-[#282828]/95 backdrop-blur-xl rounded-full px-6 py-3 flex justify-between items-center z-50 shadow-2xl border border-white/5">
+    <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-[#1f1f22]/95 backdrop-blur-xl rounded-full px-6 py-3 flex justify-between items-center z-50 shadow-2xl border border-white/5">
       <NavLink
         to="/home"
         className={({ isActive }) =>
           cn(
             "flex items-center justify-center transition-all duration-300 rounded-full",
-            isActive ? "bg-[#cbfb45] text-black p-2.5" : "text-gray-400 hover:text-white p-2.5"
+            isActive ? "bg-[#A78BFA] text-[#0B0B0D] p-2.5 shadow-[0_0_10px_rgba(167,139,250,0.5)]" : "text-gray-400 hover:text-white p-2.5"
           )
         }
       >
@@ -21,7 +21,7 @@ export default function BottomNav() {
         className={({ isActive }) =>
           cn(
             "flex items-center justify-center transition-all duration-300 rounded-full",
-            isActive ? "bg-[#cbfb45] text-black p-2.5" : "text-gray-400 hover:text-white p-2.5"
+            isActive ? "bg-[#A78BFA] text-[#0B0B0D] p-2.5 shadow-[0_0_10px_rgba(167,139,250,0.5)]" : "text-gray-400 hover:text-white p-2.5"
           )
         }
       >
@@ -32,7 +32,7 @@ export default function BottomNav() {
         className={({ isActive }) =>
           cn(
             "flex items-center justify-center transition-all duration-300 rounded-full",
-            isActive ? "bg-[#cbfb45] text-black p-2.5" : "text-gray-400 hover:text-white p-2.5"
+            isActive ? "bg-[#A78BFA] text-[#0B0B0D] p-2.5 shadow-[0_0_10px_rgba(167,139,250,0.5)]" : "text-gray-400 hover:text-white p-2.5"
           )
         }
       >
@@ -43,7 +43,7 @@ export default function BottomNav() {
         className={({ isActive }) =>
           cn(
             "flex items-center justify-center transition-all duration-300 rounded-full",
-            isActive ? "bg-[#cbfb45] text-black p-2.5" : "text-gray-400 hover:text-white p-2.5"
+            isActive ? "bg-[#A78BFA] text-[#0B0B0D] p-2.5 shadow-[0_0_10px_rgba(167,139,250,0.5)]" : "text-gray-400 hover:text-white p-2.5"
           )
         }
       >
@@ -54,7 +54,7 @@ export default function BottomNav() {
         className={({ isActive }) =>
           cn(
             "flex items-center justify-center transition-all duration-300 rounded-full",
-            isActive ? "bg-[#cbfb45] text-black p-2.5" : "text-gray-400 hover:text-white p-2.5"
+            isActive ? "bg-[#A78BFA] text-[#0B0B0D] p-2.5 shadow-[0_0_10px_rgba(167,139,250,0.5)]" : "text-gray-400 hover:text-white p-2.5"
           )
         }
       >

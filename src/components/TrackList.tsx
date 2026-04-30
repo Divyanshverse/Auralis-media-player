@@ -55,9 +55,9 @@ const TrackItem = memo(({
     >
       <div className="w-4 hidden md:flex justify-center">
         {isCurrent && isPlaying ? (
-          <Pause className="w-4 h-4 text-green-500 hover:scale-110" onClick={(e) => { e.stopPropagation(); onPause(); }} />
+          <Pause className="w-4 h-4 text-[#A78BFA] hover:scale-110" onClick={(e) => { e.stopPropagation(); onPause(); }} />
         ) : isCurrent ? (
-          <Play className="w-4 h-4 text-green-500 hover:scale-110" onClick={(e) => { e.stopPropagation(); onPlay(track); }} />
+          <Play className="w-4 h-4 text-[#A78BFA] hover:scale-110" onClick={(e) => { e.stopPropagation(); onPlay(track); }} />
         ) : (
           <span className="group-hover:hidden">{index + 1}</span>
         )}
@@ -80,22 +80,22 @@ const TrackItem = memo(({
           {isCurrent && (
             <div className="absolute inset-0 bg-black/60 flex md:hidden items-center justify-center rounded-sm">
               {isPlaying ? (
-                <Pause className="w-4 h-4 text-green-500 hover:scale-110" onClick={(e) => { e.stopPropagation(); onPause(); }} />
+                <Pause className="w-4 h-4 text-[#A78BFA] hover:scale-110" onClick={(e) => { e.stopPropagation(); onPause(); }} />
               ) : (
-                <Play className="w-4 h-4 text-green-500 ml-0.5 hover:scale-110" onClick={(e) => { e.stopPropagation(); onPlay(track); }} />
+                <Play className="w-4 h-4 text-[#A78BFA] ml-0.5 hover:scale-110" onClick={(e) => { e.stopPropagation(); onPlay(track); }} />
               )}
             </div>
           )}
         </div>
         <div className="truncate">
-          <div className={cn("truncate text-base hover:underline", isCurrent ? "text-green-500" : "text-white")}>
+          <div className={cn("truncate text-base hover:underline", isCurrent ? "text-[#A78BFA]" : "text-white")}>
             {track.title}
           </div>
           <div 
             className="flex items-center gap-2 truncate text-sm group-hover:text-white transition-colors hover:underline cursor-pointer"
             onClick={(e) => { e.stopPropagation(); onNavigateToArtist(track.artist); }}
           >
-            {isDownloaded && <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />}
+            {isDownloaded && <CheckCircle2 className="w-3 h-3 text-[#A78BFA] shrink-0" />}
             <span className="truncate">{track.artist}</span>
           </div>
         </div>
@@ -114,7 +114,7 @@ const TrackItem = memo(({
           onClick={(e) => onDownloadToggle(e, track)}
           className={cn(
             "opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity", 
-            isDownloaded && "opacity-100 text-green-500",
+            isDownloaded && "opacity-100 text-[#A78BFA]",
             isDownloading && "opacity-100 animate-pulse text-gray-400"
           )}
           disabled={isDownloading}
@@ -123,7 +123,7 @@ const TrackItem = memo(({
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); onToggleLike(track); }}
-          className={cn("opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity", isLiked && "opacity-100 text-green-500")}
+          className={cn("opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity", isLiked && "opacity-100 text-[#A78BFA]")}
         >
           <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
         </button>
@@ -155,7 +155,7 @@ const TrackItem = memo(({
         {isDropdownOpen && (
           <div 
             ref={dropdownRef}
-            className="absolute right-0 top-8 w-48 bg-[#282828] rounded-md shadow-2xl z-50 py-1 border border-white/10"
+            className="absolute right-0 top-8 w-48 bg-[#1f1f22] rounded-md shadow-2xl z-50 py-1 border border-white/10"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-white/10 mb-1">

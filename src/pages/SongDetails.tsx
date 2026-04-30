@@ -52,10 +52,10 @@ export default function SongDetails() {
 
   if (!track) {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-[#121212] text-white">
+      <div className="h-full flex flex-col items-center justify-center bg-[#0B0B0D] text-white">
         <h2 className="text-2xl font-bold mb-4">Song not found</h2>
         <p className="text-gray-400 mb-6">Please select a song from the search or home page.</p>
-        <button onClick={() => navigate('/')} className="px-6 py-2 bg-white text-black rounded-full font-bold hover:scale-105 transition-transform">
+        <button onClick={() => navigate('/')} className="px-6 py-2 bg-white text-[#0B0B0D] rounded-full font-bold hover:scale-105 transition-transform">
           Go Home
         </button>
       </div>
@@ -69,9 +69,9 @@ export default function SongDetails() {
   const containingPlaylists = playlists.filter(p => p.tracks.some(t => t.id === track.id));
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#121212] pb-40">
+    <div className="h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#0B0B0D] pb-40">
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-end gap-6 p-6 md:p-8 bg-gradient-to-b from-transparent to-black/40">
+      <div className="flex flex-col md:flex-row items-end gap-6 p-6 md:p-8 bg-gradient-to-b from-transparent to-[#0B0B0D]/40">
         <img 
           src={track.artwork} 
           alt={track.title} 
@@ -100,17 +100,17 @@ export default function SongDetails() {
       <div className="flex items-center gap-6 px-6 md:px-8 py-4">
         <button
           onClick={() => isCurrentTrack && isPlaying ? pause() : playTrack(track, [track, ...artistSongs])}
-          className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-xl"
+          className="w-14 h-14 bg-[#A78BFA] rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-xl"
         >
           {isCurrentTrack && isPlaying ? (
-            <Pause className="w-7 h-7 text-black fill-current" />
+            <Pause className="w-7 h-7 text-[#0B0B0D] fill-current" />
           ) : (
-            <Play className="w-7 h-7 text-black fill-current ml-1" />
+            <Play className="w-7 h-7 text-[#0B0B0D] fill-current ml-1" />
           )}
         </button>
         <button 
           onClick={() => toggleLike(track)}
-          className={cn("hover:scale-105 transition-transform", isLiked ? "text-green-500" : "text-gray-400 hover:text-white")}
+          className={cn("hover:scale-105 transition-transform", isLiked ? "text-[#A78BFA]" : "text-gray-400 hover:text-white")}
         >
           <Heart className={cn("w-8 h-8", isLiked && "fill-current")} />
         </button>
@@ -143,7 +143,7 @@ export default function SongDetails() {
                 <div 
                   key={playlist.id}
                   onClick={() => navigate(`/playlist/${playlist.id}`)}
-                  className="bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition-colors cursor-pointer flex items-center gap-4 min-w-[200px]"
+                  className="bg-[#141416] p-4 rounded-md hover:bg-[#1f1f22] transition-colors cursor-pointer flex items-center gap-4 min-w-[200px]"
                 >
                   <div className="w-12 h-12 bg-gray-800 rounded flex items-center justify-center">
                     <Disc className="w-6 h-6 text-gray-400" />
@@ -186,7 +186,7 @@ export default function SongDetails() {
                     onClick={(e) => { e.stopPropagation(); toggleLike(t); }}
                     className="opacity-0 group-hover:opacity-100 p-2"
                   >
-                    <Heart className={cn("w-4 h-4", likedTracks.some(lt => lt.id === t.id) ? "text-green-500 fill-current" : "text-gray-400 hover:text-white")} />
+                    <Heart className={cn("w-4 h-4", likedTracks.some(lt => lt.id === t.id) ? "text-[#A78BFA] fill-current" : "text-gray-400 hover:text-white")} />
                   </button>
                   <div className="text-gray-400 text-sm w-12 text-right">
                     {Math.floor(t.duration / 60000)}:{((t.duration % 60000) / 1000).toFixed(0).padStart(2, '0')}
@@ -208,7 +208,7 @@ export default function SongDetails() {
                 <div 
                   key={album.id} 
                   onClick={() => navigate(`/album/${album.id}`)}
-                  className="bg-[#181818] p-4 rounded-md w-40 flex-shrink-0 cursor-pointer hover:bg-[#282828] transition-colors group"
+                  className="bg-[#141416] p-4 rounded-md w-40 flex-shrink-0 cursor-pointer hover:bg-[#1f1f22] transition-colors group"
                 >
                   <div className="w-full aspect-square bg-gray-800 rounded-md mb-3 relative overflow-hidden shadow-lg">
                     {album.artwork ? (
@@ -218,8 +218,8 @@ export default function SongDetails() {
                         <Disc className="w-12 h-12 text-gray-600" />
                       </div>
                     )}
-                    <div className="absolute bottom-2 right-2 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-xl translate-y-2 group-hover:translate-y-0">
-                      <Play className="w-5 h-5 text-black fill-current ml-1" />
+                    <div className="absolute bottom-2 right-2 w-10 h-10 bg-[#A78BFA] rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-xl translate-y-2 group-hover:translate-y-0">
+                      <Play className="w-5 h-5 text-[#0B0B0D] fill-current ml-1" />
                     </div>
                   </div>
                   <div className="text-white font-bold truncate mb-1">{album.title}</div>
@@ -245,7 +245,7 @@ export default function SongDetails() {
                 <div 
                   key={`${t.id}-${index}`}
                   onClick={() => navigate(`/song/${t.id}`, { state: { track: t } })}
-                  className="bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition-colors cursor-pointer w-40 flex-shrink-0 group relative"
+                  className="bg-[#141416] p-4 rounded-md hover:bg-[#1f1f22] transition-colors cursor-pointer w-40 flex-shrink-0 group relative"
                 >
                   <div className="relative mb-3">
                     <img src={t.artwork} alt={t.title} className="w-full aspect-square object-cover rounded-md" />
@@ -254,9 +254,9 @@ export default function SongDetails() {
                         e.stopPropagation();
                         playTrack(t, similarSongs);
                       }}
-                      className="absolute bottom-2 right-2 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shadow-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-10"
+                      className="absolute bottom-2 right-2 w-10 h-10 bg-[#A78BFA] rounded-full flex items-center justify-center shadow-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-10"
                     >
-                      <Play className="w-5 h-5 text-black fill-current ml-1" />
+                      <Play className="w-5 h-5 text-[#0B0B0D] fill-current ml-1" />
                     </button>
                   </div>
                   <div className="text-white font-bold truncate">{t.title}</div>

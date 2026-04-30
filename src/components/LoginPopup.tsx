@@ -14,7 +14,7 @@ export default function LoginPopup({ isOpen, onClose }: LoginPopupProps) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-[#181818] rounded-2xl p-6 w-full max-w-sm border border-white/10 shadow-2xl relative">
+      <div className="bg-[#141416] rounded-2xl p-6 w-full max-w-sm border border-white/10 shadow-2xl relative">
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white">
           <X className="w-5 h-5" />
         </button>
@@ -24,7 +24,7 @@ export default function LoginPopup({ isOpen, onClose }: LoginPopupProps) {
             onClose();
             navigate('/login');
           }}
-          className="w-full py-3 bg-green-500 text-black font-bold rounded-full hover:bg-green-400 transition-all"
+          className="w-full py-3 bg-[#A78BFA] text-[#0B0B0D] font-bold rounded-full hover:bg-[#8B5CF6] transition-all"
         >
           OK
         </button>

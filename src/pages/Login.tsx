@@ -54,7 +54,7 @@ export default function Login() {
 
       {/* Premium Background Effects */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-green-500/20 rounded-full blur-[120px] opacity-60 mix-blend-screen animate-pulse" style={{ animationDuration: '4s' }}></div>
+        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-[#A78BFA]/20 rounded-full blur-[120px] opacity-60 mix-blend-screen animate-pulse" style={{ animationDuration: '4s' }}></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-emerald-600/20 rounded-full blur-[120px] opacity-60 mix-blend-screen animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }}></div>
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0a0a]/80 to-[#0a0a0a]"></div>
         
@@ -64,8 +64,8 @@ export default function Login() {
 
       <div className="relative z-10 w-full max-w-md p-6 sm:p-8 animate-in fade-in zoom-in duration-500">
         <div className="flex flex-col items-center mb-10">
-          <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-[0_0_40px_rgba(34,197,94,0.3)] transform transition-transform hover:scale-105">
-            <Music className="w-10 h-10 text-black" />
+          <div className="w-20 h-20 bg-gradient-to-br from-[#8B5CF6] to-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-[0_0_40px_rgba(34,197,94,0.3)] transform transition-transform hover:scale-105">
+            <Music className="w-10 h-10 text-[#0B0B0D]" />
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-3 text-center tracking-tight">
             Auralis
@@ -75,7 +75,7 @@ export default function Login() {
           </p>
         </div>
 
-        <div className="bg-[#121212]/60 backdrop-blur-3xl p-8 sm:p-10 rounded-[2rem] border border-white/10 shadow-2xl relative overflow-hidden">
+        <div className="bg-[#0B0B0D]/60 backdrop-blur-3xl p-8 sm:p-10 rounded-[2rem] border border-white/10 shadow-2xl relative overflow-hidden">
           {/* Subtle inner glow */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-green-500/50 to-transparent"></div>
 
@@ -84,14 +84,14 @@ export default function Login() {
               <label className="text-sm font-semibold text-gray-300 ml-1 uppercase tracking-wider">Username</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                  <User className="h-6 w-6 text-gray-500 group-focus-within:text-green-500 transition-colors" />
+                  <User className="h-6 w-6 text-gray-500 group-focus-within:text-[#A78BFA] transition-colors" />
                 </div>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                   placeholder="e.g. musiclover99"
-                  className="w-full bg-[#1a1a1a]/80 text-white pl-14 pr-6 py-5 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500/50 border border-white/5 focus:border-green-500/50 transition-all placeholder-gray-600 text-xl font-medium shadow-inner"
+                  className="w-full bg-[#1a1a1a]/80 text-white pl-14 pr-6 py-5 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500/50 border border-white/5 focus:border-[#A78BFA]/50 transition-all placeholder-gray-600 text-xl font-medium shadow-inner"
                   autoFocus
                 />
               </div>
@@ -101,7 +101,7 @@ export default function Login() {
               <label className="text-sm font-semibold text-gray-300 ml-1 uppercase tracking-wider">Secret Code</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                  <Lock className="h-6 w-6 text-gray-500 group-focus-within:text-green-500 transition-colors" />
+                  <Lock className="h-6 w-6 text-gray-500 group-focus-within:text-[#A78BFA] transition-colors" />
                 </div>
                 <input
                   type="password"
@@ -109,7 +109,7 @@ export default function Login() {
                   value={pin}
                   onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                   placeholder="Min 4 digits"
-                  className="w-full bg-[#1a1a1a]/80 text-white pl-14 pr-6 py-5 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500/50 border border-white/5 focus:border-green-500/50 transition-all placeholder-gray-600 text-xl font-medium shadow-inner tracking-widest"
+                  className="w-full bg-[#1a1a1a]/80 text-white pl-14 pr-6 py-5 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500/50 border border-white/5 focus:border-[#A78BFA]/50 transition-all placeholder-gray-600 text-xl font-medium shadow-inner tracking-widest"
                 />
               </div>
               {error && <p className="text-red-400 text-sm pl-2 mt-2 font-medium animate-in slide-in-from-top-1">{error}</p>}
@@ -118,7 +118,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading || username.length < 3 || pin.length < 4}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold py-5 rounded-2xl hover:from-green-400 hover:to-emerald-500 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-3 text-lg mt-4 shadow-[0_0_20px_rgba(34,197,94,0.2)]"
+              className="w-full bg-gradient-to-r from-[#A78BFA] to-emerald-600 text-[#0B0B0D] font-bold py-5 rounded-2xl hover:from-[#8B5CF6] hover:to-emerald-500 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-3 text-lg mt-4 shadow-[0_0_20px_rgba(34,197,94,0.2)]"
             >
               {isLoading ? (
                 <div className="w-7 h-7 border-3 border-black border-t-transparent rounded-full animate-spin"></div>

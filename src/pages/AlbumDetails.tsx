@@ -35,9 +35,9 @@ export default function AlbumDetails() {
 
   if (!id) {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-[#121212] text-white">
+      <div className="h-full flex flex-col items-center justify-center bg-[#0B0B0D] text-white">
         <h2 className="text-2xl font-bold mb-4">Album not found</h2>
-        <button onClick={() => navigate('/')} className="px-6 py-2 bg-white text-black rounded-full font-bold hover:scale-105 transition-transform">
+        <button onClick={() => navigate('/')} className="px-6 py-2 bg-white text-[#0B0B0D] rounded-full font-bold hover:scale-105 transition-transform">
           Go Home
         </button>
       </div>
@@ -51,9 +51,9 @@ export default function AlbumDetails() {
   const isCurrentAlbum = currentTrack?.album === albumTitle;
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#121212] pb-40">
+    <div className="h-full overflow-y-auto bg-gradient-to-b from-[#2a2a2a] to-[#0B0B0D] pb-40">
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-end gap-6 p-6 md:p-8 bg-gradient-to-b from-transparent to-black/40">
+      <div className="flex flex-col md:flex-row items-end gap-6 p-6 md:p-8 bg-gradient-to-b from-transparent to-[#0B0B0D]/40">
         <div className="w-48 h-48 md:w-60 md:h-60 shadow-2xl rounded-md bg-gray-800 flex items-center justify-center overflow-hidden">
           {artwork ? (
             <img src={artwork} alt={albumTitle} className="w-full h-full object-cover" />
@@ -78,13 +78,13 @@ export default function AlbumDetails() {
       <div className="flex items-center gap-6 px-6 md:px-8 py-4">
         <button
           onClick={() => isCurrentAlbum && isPlaying ? pause() : playTrack(albumTracks[0], albumTracks)}
-          className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-xl"
+          className="w-14 h-14 bg-[#A78BFA] rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-xl"
           disabled={albumTracks.length === 0}
         >
           {isCurrentAlbum && isPlaying ? (
-            <Pause className="w-7 h-7 text-black fill-current" />
+            <Pause className="w-7 h-7 text-[#0B0B0D] fill-current" />
           ) : (
-            <Play className="w-7 h-7 text-black fill-current ml-1" />
+            <Play className="w-7 h-7 text-[#0B0B0D] fill-current ml-1" />
           )}
         </button>
       </div>
@@ -115,7 +115,7 @@ export default function AlbumDetails() {
                     <Play className="w-4 h-4 mx-auto fill-current" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className={cn("font-medium truncate", currentTrack?.id === t.id ? "text-green-500" : "text-white")}>
+                    <div className={cn("font-medium truncate", currentTrack?.id === t.id ? "text-[#A78BFA]" : "text-white")}>
                       {t.title}
                     </div>
                     <div className="text-gray-400 text-sm truncate">{t.artist}</div>
@@ -124,7 +124,7 @@ export default function AlbumDetails() {
                     onClick={(e) => { e.stopPropagation(); toggleLike(t); }}
                     className="opacity-0 group-hover:opacity-100 p-2"
                   >
-                    <Heart className={cn("w-4 h-4", likedTracks.some(lt => lt.id === t.id) ? "text-green-500 fill-current" : "text-gray-400 hover:text-white")} />
+                    <Heart className={cn("w-4 h-4", likedTracks.some(lt => lt.id === t.id) ? "text-[#A78BFA] fill-current" : "text-gray-400 hover:text-white")} />
                   </button>
                   <div className="text-gray-400 text-sm w-12 text-right">
                     {formatTime(t.duration)}
