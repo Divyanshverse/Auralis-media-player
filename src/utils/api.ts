@@ -68,6 +68,37 @@ export const searchArtists = async (
   }
 };
 
+export const searchPlaylists = async (
+  query: string,
+  limit = 10,
+  signal?: AbortSignal
+): Promise<any[]> => {
+  if (!query.trim()) return [];
+  
+  try {
+    const response = await fetch(`/api/search/playlists?q=${encodeURIComponent(query)}&limit=${limit}`, { signal });
+    if (!response.ok) throw new Error('Failed to fetch');
+    return await response.json();
+  } catch (error: any) {
+    if (error.name === 'AbortError' || error.message === 'Aborted') {
+      return [];
+    }
+    console.error("Search playlists error:", error);
+    return [];
+  }
+};
+
+export const getPlaylistTracks = async (playlistId: string): Promise<Track[]> => {
+  try {
+    const response = await fetch(`/api/playlist/tracks?id=${encodeURIComponent(playlistId)}`);
+    if (!response.ok) throw new Error('Failed to fetch');
+    return await response.json();
+  } catch (error: any) {
+    console.error("Get playlist tracks error:", error);
+    return [];
+  }
+};
+
 export const getAlbumTracks = async (albumId: string): Promise<Track[]> => {
   try {
     const response = await fetch(`/api/album/tracks?id=${encodeURIComponent(albumId)}`);
@@ -80,7 +111,7 @@ export const getAlbumTracks = async (albumId: string): Promise<Track[]> => {
 };
 
 export const getRecommendations = async (): Promise<Track[]> => {
-  const terms = ["top hits", "trending", "lofi", "bollywood", "pop", "chill", "punjabi", "hip hop"];
+  const terms = ["Latest Hindi Bollywood songs", "Top Punjabi Hits", "Trending English Pop in India", "Top Hindi Lo-Fi", "Popular Indian tracks"];
   const randomTerm = terms[Math.floor(Math.random() * terms.length)];
   return searchTracks(randomTerm, 24);
 };

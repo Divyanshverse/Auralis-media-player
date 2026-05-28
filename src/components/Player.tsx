@@ -54,6 +54,7 @@ export default function Player() {
   const isTrackLoadedRef = useRef<boolean>(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showLyrics, setShowLyrics] = useState(false);
   const [isPlaylistDropdownOpen, setIsPlaylistDropdownOpen] = useState(false);
@@ -312,18 +313,6 @@ export default function Player() {
     }
   }, [currentTrack, showLyrics]);
 
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      const currentTime = audioRef.current.currentTime;
-      // Throttle updates to once per second to reduce re-renders
-      if (Math.abs(currentTime - lastUpdateRef.current) >= 1) {
-        setProgress(currentTime);
-        lastUpdateRef.current = currentTime;
-      }
-      setDuration(audioRef.current.duration || 0);
-    }
-  };
-
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = Number(e.target.value);
     if (audioRef.current) {
@@ -331,6 +320,14 @@ export default function Player() {
       setProgress(time);
     }
   };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setProgress(audioRef.current.currentTime);
+      setDuration(audioRef.current.duration || 0);
+    }
+  };
+
 
   const handleEnded = () => {
     if (repeatMode === "one" && audioRef.current) {

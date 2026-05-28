@@ -10,6 +10,10 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import play from 'play-dl';
+
+// Hack for play.getFreeClientID.called
+(play as any).isInit = false;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -49,46 +53,8 @@ app.get('/api/resolve-track', async (req, res) => {
   }
   
   try {
-    // 1. Primary Source: JioSaavn API for Full-Length True Audio Streams
-    if (title) {
-      try {
-        const query = `${title} ${artist || ''}`.trim();
-        const saavnRes = await fetch(`https://jiosaavn-api-privatecvc2.vercel.app/search/songs?query=${encodeURIComponent(query)}`);
-        
-        if (saavnRes.ok) {
-          const data = await saavnRes.json();
-          if (data?.data?.results && data.data.results.length > 0) {
-            const track = data.data.results[0];
-            const downloads = track.downloadUrl;
-            
-            if (downloads && downloads.length > 0) {
-              // Priority: 320kbps -> 160kbps -> 96kbps -> etc
-              const bestQuality = downloads.sort((a: any, b: any) => {
-                const qa = parseInt(a.quality.replace('kbps', '')) || 0;
-                const qb = parseInt(b.quality.replace('kbps', '')) || 0;
-                return qb - qa;
-              })[0];
-              
-              if (bestQuality && bestQuality.link) {
-                const result = {
-                  url: bestQuality.link,
-                  title: track.name ? track.name.replace(/&quot;/g, '"').replace(/&amp;/g, '&') : title,
-                  artist: track.primaryArtists || artist,
-                  artwork: track.image && track.image.length > 0 ? track.image[track.image.length - 1].link : undefined,
-                  directUrl: bestQuality.link
-                };
-                streamCache.set(cacheKey, result);
-                return res.json(result);
-              }
-            }
-          }
-        }
-      } catch (saavnErr) {
-        console.warn('JioSaavn API fallback error:', saavnErr);
-      }
-    }
-
-    // 2. Fallback Source: YouTube-DL Exec
+    // 1. Primary Source: Soundcloud
+    // (JioSaavn disabled as the public instance requires payment now and delays response)
     let ytUrl = url;
     if (id && !url) {
       ytUrl = `https://www.youtube.com/watch?v=${id}`;
@@ -101,6 +67,43 @@ app.get('/api/resolve-track', async (req, res) => {
       if (searchResult && searchResult.length > 0) {
         ytUrl = `https://www.youtube.com/watch?v=${searchResult[0].videoId}`;
       }
+    }
+
+    try {
+      // If we don't have a soundcloud client id, get one.
+      if (!(play as any).isInit) {
+         try {
+           const scId = await play.getFreeClientID();
+           await play.setToken({ soundcloud: { client_id: scId } });
+           (play as any).isInit = true;
+         } catch(e){}
+      }
+
+      const query = `${title} ${artist || ''}`.trim();
+      const searchResults = await play.search(query, { source: { soundcloud: 'tracks' }, limit: 1 });
+      
+      if (searchResults && searchResults.length > 0) {
+         let playableUrl = `/api/stream?sc_url=${encodeURIComponent(searchResults[0].url)}`;
+         try {
+            const scStream = await play.stream(searchResults[0].url);
+            if (scStream && scStream.url && scStream.url.includes('.m3u8')) {
+               playableUrl = scStream.url;
+            }
+         } catch(e) {}
+         
+         const result = {
+            url: playableUrl,
+            title: searchResults[0].name || title,
+            artist: searchResults[0].user?.name || artist,
+            artwork: searchResults[0].thumbnail,
+            directUrl: searchResults[0].url
+         };
+         streamCache.set(cacheKey, result);
+         return res.json(result);
+      }
+    } catch (scErr: any) {
+      console.warn('Soundcloud fallback error:', scErr.message);
+      return res.status(500).json({ error: 'sc err', msg: scErr.message, stack: scErr.stack });
     }
 
     if (ytUrl && (ytUrl.includes('youtube.com') || ytUrl.includes('youtu.be'))) {
@@ -135,7 +138,7 @@ app.get('/api/resolve-track', async (req, res) => {
           return res.json(result);
         }
       } catch (ytError: any) {
-        console.warn('YouTube stream error:', ytError.message || ytError);
+        // Suppress YouTube bot bot-protection errors as they are expected on datacenter IPs
       }
     }
 
@@ -146,13 +149,34 @@ app.get('/api/resolve-track', async (req, res) => {
   }
 });
 
-// Stream endpoint to dynamically fetch audio URL (legacy redirect)
+// Stream endpoint to dynamically fetch audio URL (legacy redirect or pipes)
 app.get('/api/stream', async (req, res) => {
   const title = req.query.title as string;
   const artist = req.query.artist as string;
   const url = req.query.url as string;
   const id = req.query.id as string;
+  const scUrl = req.query.sc_url as string;
   
+  if (scUrl) {
+    try {
+      if (!(play as any).isInit) {
+         try {
+           const scId = await play.getFreeClientID();
+           await play.setToken({ soundcloud: { client_id: scId } });
+           (play as any).isInit = true;
+         } catch(e){}
+      }
+      const stream = await play.stream(scUrl);
+      if (stream && stream.stream) {
+        res.setHeader('Content-Type', 'audio/mpeg');
+        // Do not set Accept-Ranges if we cannot handle 206! This breaks Chrome audio playback.
+        return stream.stream.pipe(res);
+      }
+    } catch(e) {
+      console.warn('Soundcloud streaming error', e);
+    }
+  }
+
   const cacheKey = id || url || `${title}-${artist}`;
   
   try {
@@ -160,6 +184,32 @@ app.get('/api/stream', async (req, res) => {
     
     if (streamCache.has(cacheKey)) {
       directUrl = streamCache.get(cacheKey).directUrl;
+    }
+    
+    // Very fast Soundcloud search fallback (avoids yt-dlp 10-20s cold start and bot block)
+    if (!directUrl && title) {
+      try {
+        if (!(play as any).isInit) {
+           const scId = await play.getFreeClientID();
+           await play.setToken({ soundcloud: { client_id: scId } });
+           (play as any).isInit = true;
+        }
+        
+        const cleanTitle = title.replace(/\([^)]*\)|\[[^\]]*\]/g, '').trim();
+        const sq = `${cleanTitle} ${artist || ''}`.trim();
+        const searchResults = await play.search(sq, { source: { soundcloud: 'tracks' }, limit: 1 });
+        
+        if (searchResults && searchResults.length > 0) {
+           const scStream = await play.stream(searchResults[0].url);
+           if (scStream && scStream.stream) {
+              res.setHeader('Content-Type', 'audio/mpeg');
+              // No Accept-Ranges for piped streams without range handlers!
+              return scStream.stream.pipe(res);
+           }
+        }
+      } catch (scErr) {
+        console.warn('Soundcloud fast-stream error', scErr);
+      }
     }
     
     if (!directUrl) {
@@ -206,19 +256,29 @@ app.get('/api/stream', async (req, res) => {
             });
           }
         } catch (ytError: any) {
-          console.warn('YouTube stream error:', ytError.message || ytError);
+          // Suppress YouTube bot bot-protection errors as they are expected on datacenter IPs
         }
       }
     }
     
     if (directUrl) {
       // Proxy the audio stream to bypass IP restrictions
-      const audioRes = await fetch(directUrl);
+      const fetchOpts: any = {};
+      if (req.headers.range) {
+        fetchOpts.headers = { Range: req.headers.range };
+      }
+      const audioRes = await fetch(directUrl, fetchOpts);
       if (audioRes.ok && audioRes.body) {
+        res.status(audioRes.status);
         res.setHeader('Content-Type', audioRes.headers.get('content-type') || 'audio/mp4');
-        res.setHeader('Accept-Ranges', 'bytes');
+        if (audioRes.headers.has('accept-ranges')) {
+          res.setHeader('Accept-Ranges', audioRes.headers.get('accept-ranges')!);
+        }
         if (audioRes.headers.has('content-length')) {
           res.setHeader('Content-Length', audioRes.headers.get('content-length')!);
+        }
+        if (audioRes.headers.has('content-range')) {
+          res.setHeader('Content-Range', audioRes.headers.get('content-range')!);
         }
         return audioRes.body.pipe(res);
       }
@@ -272,6 +332,52 @@ const deduplicateTracks = (tracks: any[]) => {
     return true;
   });
 };
+
+app.get('/api/search/playlists', async (req, res) => {
+  try {
+    const query = req.query.q as string;
+    const limit = parseInt(req.query.limit as string) || 10;
+    
+    const searchResult = await ytmusic.searchPlaylists(query);
+    const playlists = searchResult.slice(0, limit).map((p: any) => ({
+      id: p.playlistId,
+      name: p.name,
+      creator: p.artist?.name || 'YouTube Music',
+      image: p.thumbnails?.[p.thumbnails.length - 1]?.url || p.thumbnails?.[0]?.url || '',
+      trackCount: p.videoCount || 0
+    }));
+    
+    res.json(playlists);
+  } catch (err: any) {
+    console.warn('Playlist search error:', err.message);
+    res.json([]);
+  }
+});
+
+app.get('/api/playlist/tracks', async (req, res) => {
+  try {
+    const playlistId = req.query.id as string;
+    const videos = await ytmusic.getPlaylistVideos(playlistId);
+    
+    if (videos && videos.length > 0) {
+      const tracks = videos.map((song: any) => ({
+        id: song.videoId,
+        title: song.name,
+        artist: song.artists?.map((a: any) => a.name).join(', ') || song.artist?.name || 'Unknown Artist',
+        album: song.album?.name || 'Playlist Track',
+        artwork: song.thumbnails?.[song.thumbnails.length - 1]?.url || song.thumbnails?.[0]?.url || '',
+        duration: song.duration * 1000 || 0,
+        url: `/api/stream?id=${song.videoId}&title=${encodeURIComponent(song.name)}&artist=${encodeURIComponent(song.artists?.[0]?.name || song.artist?.name || '')}`
+      }));
+      return res.json(tracks);
+    }
+    
+    res.json([]);
+  } catch (err: any) {
+    console.warn('Playlist tracks error:', err.message);
+    res.json([]);
+  }
+});
 
 app.get('/api/search', async (req, res) => {
   const query = req.query.q as string;

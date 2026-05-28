@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePlayerStore } from '../store/usePlayerStore';
+import { getPlaylistTracks } from '../utils/api';
+import { Track } from '../types';
 import TrackList from '../components/TrackList';
 import { Play, Pause, Music, Trash2, Edit2 } from 'lucide-react';
 import { cn } from '../utils/helpers';
@@ -10,7 +12,38 @@ export default function Playlist() {
   const navigate = useNavigate();
   const { playlists, currentTrack, isPlaying, playTrack, pause, deletePlaylist, renamePlaylist } = usePlayerStore();
 
-  const playlist = playlists.find(p => p.id === id);
+  const [ytPlaylist, setYtPlaylist] = useState<{ id: string; name: string; tracks: Track[]; isYt: boolean } | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const localPlaylist = playlists.find(p => p.id === id);
+  const playlist = localPlaylist || ytPlaylist;
+
+  useEffect(() => {
+    if (id && !localPlaylist) {
+      setLoading(true);
+      getPlaylistTracks(id).then(tracks => {
+        if (tracks && tracks.length > 0) {
+          setYtPlaylist({
+            id: id,
+            name: tracks[0]?.album || 'YouTube Playlist',
+            tracks: tracks,
+            isYt: true
+          });
+        }
+        setLoading(false);
+      });
+    } else {
+      setYtPlaylist(null);
+    }
+  }, [id, localPlaylist]);
+
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center bg-[#0B0B0D]">
+        <div className="w-10 h-10 border-4 border-[#A78BFA] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (!playlist) {
     return (
@@ -55,7 +88,7 @@ export default function Playlist() {
   return (
     <div className="h-full overflow-y-auto bg-gradient-to-b from-gray-800 to-[#0B0B0D] pb-40">
       <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6 p-4 md:p-6 pt-12 md:pt-24 pb-6 md:pb-8 bg-gradient-to-b from-transparent to-[#0B0B0D]/40">
-        <div className="w-32 h-32 md:w-48 md:h-48 bg-[#1f1f22] shadow-2xl flex items-center justify-center shrink-0 self-center md:self-auto">
+        <div className="w-32 h-32 md:w-48 md:h-48 bg-[#1f1f22] shadow-2xl flex items-center justify-center shrink-0 self-center md:self-auto overflow-hidden rounded-md">
           {playlist.tracks.length > 0 ? (
             <img src={playlist.tracks[0].artwork} alt={playlist.name} className="w-full h-full object-cover" loading="lazy" />
           ) : (
@@ -66,7 +99,7 @@ export default function Playlist() {
           <span className="text-xs md:text-sm font-bold text-white uppercase hidden md:block">Playlist</span>
           <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold text-white tracking-tighter truncate">{playlist.name}</h1>
           <div className="flex items-center justify-center md:justify-start gap-2 text-xs md:text-sm text-gray-300 mt-1 md:mt-2">
-            <span className="font-bold text-white">You</span>
+            <span className="font-bold text-white">{localPlaylist ? 'You' : 'YouTube Music'}</span>
             <span>•</span>
             <span>{playlist.tracks.length} songs</span>
           </div>
@@ -89,26 +122,34 @@ export default function Playlist() {
               <Play className="w-5 h-5 md:w-6 md:h-6 text-[#0B0B0D] fill-current ml-1" />
             )}
           </button>
-          <button onClick={handleRename} className="text-gray-400 hover:text-white transition-colors">
-            <Edit2 className="w-5 h-5 md:w-6 md:h-6" />
-          </button>
-          <button onClick={handleDelete} className="text-gray-400 hover:text-red-500 transition-colors">
-            <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
-          </button>
+          {localPlaylist && (
+            <>
+              <button onClick={handleRename} className="text-gray-400 hover:text-white transition-colors">
+                <Edit2 className="w-5 h-5 md:w-6 md:h-6" />
+              </button>
+              <button onClick={handleDelete} className="text-gray-400 hover:text-red-500 transition-colors">
+                <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
+              </button>
+            </>
+          )}
         </div>
 
         {playlist.tracks.length > 0 ? (
-          <TrackList tracks={playlist.tracks} playlistId={playlist.id} />
+          <TrackList tracks={playlist.tracks} playlistId={localPlaylist ? playlist.id : undefined} />
         ) : (
           <div className="text-center text-gray-400 mt-10 md:mt-20 px-4">
             <Music className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 text-gray-600" />
-            <h2 className="text-xl md:text-2xl font-bold text-white mb-2">Let's find something for your playlist</h2>
-            <button
-              onClick={() => navigate('/search')}
-              className="mt-4 px-4 py-2 md:px-6 md:py-3 bg-white text-[#0B0B0D] rounded-full font-bold hover:scale-105 transition-transform text-sm md:text-base"
-            >
-              Go to Search
-            </button>
+            <h2 className="text-xl md:text-2xl font-bold text-white mb-2">
+              {localPlaylist ? "Let's find something for your playlist" : "No tracks found in this playlist"}
+            </h2>
+            {localPlaylist && (
+              <button
+                onClick={() => navigate('/search')}
+                className="mt-4 px-4 py-2 md:px-6 md:py-3 bg-white text-[#0B0B0D] rounded-full font-bold hover:scale-105 transition-transform text-sm md:text-base"
+              >
+                Go to Search
+              </button>
+            )}
           </div>
         )}
       </div>
